@@ -39,3 +39,6 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+//app.commandLine.appendSwitch("disable-frame-rate-limit");
+app.commandLine.appendSwitch("disable-gpu-vsync");
