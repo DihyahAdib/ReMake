@@ -1,5 +1,4 @@
 //enemy.js
-import { Player } from "./player.js";
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, id, speed, damage, health) {
@@ -49,7 +48,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.mobsSpeedIncreaseCount === 0
     ) {
       this.mobsSpeedIncreaseCount++;
-      this.speed += 330;
+      this.speed += 300;
       console.log(this.speed);
     }
   }

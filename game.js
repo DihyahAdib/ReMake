@@ -1,6 +1,7 @@
 //game.js
 import { Player } from "./player.js";
 import { Enemy } from "./enemy.js";
+import { MenuScene } from "./interface.js";
 
 class GameScene extends Phaser.Scene {
   enemyGroup = null;
@@ -150,8 +151,8 @@ class GameScene extends Phaser.Scene {
 }
 
 const sizes = {
-  width: 1420,
-  height: 800,
+  width: 1280,
+  height: 720,
 };
 
 const config = {
@@ -159,7 +160,8 @@ const config = {
   width: sizes.width,
   height: sizes.height,
   backgroundColor: "#000000",
-  scene: [GameScene],
+  canvas: document.getElementById("game"),
+  scene: [MenuScene, GameScene],
   physics: {
     default: "arcade",
     arcade: {
