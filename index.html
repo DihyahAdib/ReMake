@@ -6,17 +6,18 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob:;
-        font-src 'self';
-        connect-src 'self'
-    "
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: blob:;
+    font-src 'self';
+    connect-src 'self'
+"
     />
     <link rel="stylesheet" href="./mainStyles.css" />
   </head>
   <body>
+    <div id="game-container"></div>
     <script src="./node_modules/phaser/dist/phaser.min.js"></script>
     <script src="./game.js" type="module"></script>
   </body>

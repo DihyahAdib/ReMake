@@ -175,11 +175,17 @@ class GameScene extends Phaser.Scene {
 }
 
 const config = {
-  type: Phaser.WEBGL,
+  type: Phaser.AUTO,
   width: gameWidth,
   height: gameHeight,
   backgroundColor: "#000000",
-  canvas: document.getElementById("game"),
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    parent: "game-container",
+    width: gameWidth,
+    height: gameHeight,
+  },
   scene: [MenuScene, GameScene, SettingScene],
   physics: {
     default: "arcade",

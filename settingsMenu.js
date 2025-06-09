@@ -30,7 +30,7 @@ export class SettingScene extends Phaser.Scene {
 
     // --- VSync Toggle ---
     this.toggleVSyncButton = this.add
-      .text(gameWidth / 2, gameHeight / 2 - 50, "", settingsButtonStyle)
+      .text(gameWidth / 2, gameHeight / 2, "", settingsButtonStyle)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -72,15 +72,7 @@ export class SettingScene extends Phaser.Scene {
         this.disableFullScreen
       );
 
-      window.myUniqueElectronAPI.toggleFullScreenButton(
-        !this.disableFullScreen
-      );
-
-      alert(
-        `FullScreen setting changed. The application is now ${
-          this.disableFullScreen ? "in Windowed Mode" : "in FullScreen Mode"
-        }.`
-      );
+      window.myUniqueElectronAPI.toggleFullScreen(!this.disableFullScreen);
     });
   }
 
@@ -90,8 +82,8 @@ export class SettingScene extends Phaser.Scene {
     );
   }
   updateFullScreenButtonText() {
-    this.toggleVSyncButton.setText(
-      `VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`
+    this.toggleFullScreenButton.setText(
+      `FullScreen: ${this.disableFullScreen ? "Disabled" : "Enabled"}`
     );
   }
 }
