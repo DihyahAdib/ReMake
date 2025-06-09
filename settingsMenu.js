@@ -1,4 +1,5 @@
 //settingsScene.js
+import { gameWidth, gameHeight } from "./game.js";
 
 export class SettingScene extends Phaser.Scene {
   constructor() {
@@ -22,12 +23,16 @@ export class SettingScene extends Phaser.Scene {
     });
 
     this.toggleVSyncButton = this.add
-      .text(40, 100, "", {
+      .text(gameWidth / 2, gameHeight / 2, "", {
         fontSize: "32px",
+        fill: "#FFFFFF",
         backgroundColor: "#444",
-        padding: { x: 10, y: 5 },
+        padding: { x: 15, y: 10 },
+        stroke: "#000000",
+        strokeThickness: 2,
       })
-      .setInteractive();
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
 
     this.disableVSync = await window.myUniqueElectronAPI.getSetting(
       "disableVSync"

@@ -99,7 +99,5 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.body.setVelocity(0, 0);
     this.disableBody(true, true);
     console.log("Player defeated!");
-    // TODO: Add game over logic here (e.g., restart scene, show game over screen)
-    // this.currentScene.scene.start('GameOverScene'); // Example
   }
 }

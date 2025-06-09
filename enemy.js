@@ -53,7 +53,3 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 }
-
-//DOPNT LIKE THEW WAY THEPLAYER LOOKS ADD A CUSTOMIZQTION SYSTERM
-
-//player can influence the Ai's behavior

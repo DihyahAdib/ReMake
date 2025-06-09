@@ -5,8 +5,8 @@ import { Enemy } from "./enemy.js";
 import { MenuScene } from "./mainMenu.js";
 import { SettingScene } from "./settingsMenu.js";
 
-const gameWidth = window.myUniqueElectronAPI.screenSize.width;
-const gameHeight = window.myUniqueElectronAPI.screenSize.height;
+export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
+export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
 
 class GameScene extends Phaser.Scene {
   enemyGroup = null;
@@ -16,8 +16,8 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("player", "assets/cat.webp");
-    this.load.image("enemy", "assets/enemy.webp");
+    this.load.image("player", "assets/Cat.png");
+    this.load.image("enemy", "assets/Enemy.png");
   }
 
   create() {

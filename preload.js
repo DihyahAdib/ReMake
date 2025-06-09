@@ -27,13 +27,10 @@ contextBridge.exposeInMainWorld("myUniqueElectronAPI", {
       return height;
     })(),
   },
-  // --- NEW: Expose methods for settings communication ---
   setSetting: (key, value) => ipcRenderer.invoke("set-setting", key, value),
   getSetting: (key) => ipcRenderer.invoke("get-setting", key),
-  // ----------------------------------------------------
 });
 
-// Expose these dimensions to the window object in the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
   screenSize: {
     width: screenWidth,
