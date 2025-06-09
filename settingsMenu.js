@@ -1,36 +1,36 @@
 //settingsScene.js
 import { gameWidth, gameHeight } from "./game.js";
 
+const settingsButtonStyle = {
+  fontSize: "32px",
+  fill: "#FFFFFF",
+  backgroundColor: "#444",
+  padding: { x: 15, y: 10 },
+  stroke: "#000000",
+  strokeThickness: 2,
+};
+
 export class SettingScene extends Phaser.Scene {
   constructor() {
     super({ key: "SettingScene" });
     this.disableVSync = false;
+    this.disableFullScreen = false;
   }
 
   async create() {
     this.cameras.main.setBackgroundColor("#000");
 
     const settingsMnBtnBack = this.add
-      .text(40, 40, "Back", {
-        fontSize: "32px",
-        backgroundColor: "#444",
-        padding: { x: 10, y: 5 },
-      })
-      .setInteractive();
+      .text(40, 40, "Back", settingsButtonStyle)
+      .setInteractive({ useHandCursor: true });
 
     settingsMnBtnBack.on("pointerdown", () => {
       this.scene.switch("MenuScene");
     });
 
+    // --- VSync Toggle ---
     this.toggleVSyncButton = this.add
-      .text(gameWidth / 2, gameHeight / 2, "", {
-        fontSize: "32px",
-        fill: "#FFFFFF",
-        backgroundColor: "#444",
-        padding: { x: 15, y: 10 },
-        stroke: "#000000",
-        strokeThickness: 2,
-      })
+      .text(gameWidth / 2, gameHeight / 2 - 50, "", settingsButtonStyle)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -51,9 +51,45 @@ export class SettingScene extends Phaser.Scene {
         "VSync setting changed. The application will now restart for changes to take effect."
       );
     });
+
+    // --- FullScreen Toggle ---
+    this.toggleFullScreenButton = this.add
+      .text(gameWidth / 2, 450, "", settingsButtonStyle)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    this.disableFullScreen = await window.myUniqueElectronAPI.getSetting(
+      "disableFullScreen"
+    );
+    this.updateFullScreenButtonText();
+
+    this.toggleFullScreenButton.on("pointerdown", async () => {
+      this.disableFullScreen = !this.disableFullScreen;
+      this.updateFullScreenButtonText();
+
+      await window.myUniqueElectronAPI.setSetting(
+        "disableFullScreen",
+        this.disableFullScreen
+      );
+
+      window.myUniqueElectronAPI.toggleFullScreenButton(
+        !this.disableFullScreen
+      );
+
+      alert(
+        `FullScreen setting changed. The application is now ${
+          this.disableFullScreen ? "in Windowed Mode" : "in FullScreen Mode"
+        }.`
+      );
+    });
   }
 
   updateVSyncButtonText() {
+    this.toggleVSyncButton.setText(
+      `VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`
+    );
+  }
+  updateFullScreenButtonText() {
     this.toggleVSyncButton.setText(
       `VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`
     );

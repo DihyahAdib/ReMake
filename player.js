@@ -9,7 +9,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     frame,
     attackDamage,
     initialSpeed,
-    initialHealth
+    initialHealth,
+    level,
+    nameTag
   ) {
     super(scene, x, y, texture, frame);
 
@@ -28,6 +30,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.speed = initialSpeed;
     this.health = initialHealth;
     this.mxHealth = 100;
+    this.currentLevel = level;
+    this.playerName = nameTag;
 
     this.isDead = false;
     this.canTakeDamage = true;
@@ -98,6 +102,5 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isDead = true;
     this.body.setVelocity(0, 0);
     this.disableBody(true, true);
-    console.log("Player defeated!");
   }
 }

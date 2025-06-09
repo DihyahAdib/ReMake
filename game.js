@@ -27,6 +27,8 @@ class GameScene extends Phaser.Scene {
     const playerInitialDamage = 5;
     const playerInitialHealth = 100;
     const playerInitialSpeed = 260;
+    const playerLevel = 0;
+    const playerName = "Bon bon";
 
     this.player = new Player(
       this,
@@ -36,8 +38,22 @@ class GameScene extends Phaser.Scene {
       playerFrame,
       playerInitialDamage,
       playerInitialSpeed,
-      playerInitialHealth
+      playerInitialHealth,
+      playerLevel,
+      playerName
     );
+
+    this.playerNameTag = this.add
+      .text(this.player.x, this.player.y + 10, `|${playerName}|`, {
+        font: "26px Arial",
+        fill: "#ffffff",
+        backgroundColor: "#00000080",
+        padding: { x: 5, y: 2 },
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    this.playerNameTag.setScrollFactor(1);
 
     this.enemyGroup = this.physics.add.group();
 
@@ -137,6 +153,9 @@ class GameScene extends Phaser.Scene {
     if (this.player) {
       this.player.update(time, delta);
       this.playerHpText.setText(`HP: ${this.player.health}`);
+
+      this.playerNameTag.x = this.player.x;
+      this.playerNameTag.y = this.player.y + 10;
     }
 
     if (this.enemyGroup) {
