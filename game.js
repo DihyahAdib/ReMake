@@ -2,8 +2,8 @@
 
 import { Player } from "./player.js";
 import { Enemy } from "./enemy.js";
-import { MenuScene } from "./mainMenu.js";
-import { SettingScene } from "./settingsMenu.js";
+import { MenuScene } from "./scenes/mainMenu.js";
+import { SettingScene } from "./scenes/settingsMenu.js";
 
 export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
 export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
