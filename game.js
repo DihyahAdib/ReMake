@@ -1,7 +1,12 @@
 //game.js
+
 import { Player } from "./player.js";
 import { Enemy } from "./enemy.js";
-import { MenuScene } from "./interface.js";
+import { MenuScene } from "./mainMenu.js";
+import { SettingScene } from "./settingsMenu.js";
+
+const gameWidth = window.myUniqueElectronAPI.screenSize.width;
+const gameHeight = window.myUniqueElectronAPI.screenSize.height;
 
 class GameScene extends Phaser.Scene {
   enemyGroup = null;
@@ -150,18 +155,13 @@ class GameScene extends Phaser.Scene {
   }
 }
 
-const sizes = {
-  width: 1280,
-  height: 720,
-};
-
 const config = {
   type: Phaser.WEBGL,
-  width: sizes.width,
-  height: sizes.height,
+  width: gameWidth,
+  height: gameHeight,
   backgroundColor: "#000000",
   canvas: document.getElementById("game"),
-  scene: [MenuScene, GameScene],
+  scene: [MenuScene, GameScene, SettingScene],
   physics: {
     default: "arcade",
     arcade: {

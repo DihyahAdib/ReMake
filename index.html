@@ -2,9 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./mainStyles.css" />
     <title>The binding of le-Bon Bon</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        font-src 'self';
+        connect-src 'self';
+    "
+    />
+    <link rel="stylesheet" href="./mainStyles.css" />
   </head>
   <body>
     <script src="./node_modules/phaser/dist/phaser.min.js"></script>
