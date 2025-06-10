@@ -18,12 +18,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.setOrigin(0.5);
     this.setCollideWorldBounds(true);
+    this.setOrigin(0.5);
     this.body.setDamping(true);
     this.body.setDrag(100);
 
-    this.body.immovable = true;
+    // this.body.immovable = true;
 
     this.currentScene = scene;
     this.attackDamage = attackDamage;
@@ -65,10 +65,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       moveX *= factor;
       moveY *= factor;
     }
-    this.x += moveX * this.speed * dt;
-    this.y += moveY * this.speed * dt;
 
-    this.body.setVelocity(moveX * this.speed, moveY * this.speed);
+    this.setVelocity(moveX * this.speed, moveY * this.speed);
   }
 
   takeDamage(amount) {

@@ -1,7 +1,7 @@
 //settingsScene.js
 import { gameWidth, gameHeight } from "../game.js";
 
-const settingsButtonStyle = {
+export const settingsButtonStyle = {
   fontSize: "32px",
   fill: "#FFFFFF",
   backgroundColor: "#444",
@@ -20,13 +20,12 @@ export class SettingScene extends Phaser.Scene {
   async create() {
     this.cameras.main.setBackgroundColor("#000");
 
-    const settingsMnBtnBack = this.add
+    this.settingsMnBtnBack = this.add
       .text(40, 40, "Back", settingsButtonStyle)
-      .setInteractive({ useHandCursor: true });
-
-    settingsMnBtnBack.on("pointerdown", () => {
-      this.scene.switch("MenuScene");
-    });
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.scene.switch("MenuScene");
+      });
 
     // --- VSync Toggle ---
     this.toggleVSyncButton = this.add

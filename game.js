@@ -3,6 +3,7 @@
 import { Player } from "./player.js";
 import { Enemy } from "./enemy.js";
 import { MenuScene } from "./scenes/mainMenu.js";
+import { PauseScene } from "./scenes/pauseMenu.js";
 import { SettingScene } from "./scenes/settingsMenu.js";
 
 export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
@@ -13,6 +14,7 @@ class GameScene extends Phaser.Scene {
 
   constructor() {
     super({ key: "GameScene" });
+    this.toggleEsc = false;
   }
 
   preload() {
@@ -21,6 +23,25 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.setBackgroundColor("#044");
+
+    this.keys = this.input.keyboard.addKeys({
+      Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+    });
+
+    this.escText = this.add
+      .text(
+        gameWidth / 2,
+        gameHeight / 2 + 450,
+        "Press Esc to pause the game",
+        {
+          font: "16px Arial",
+          fill: "rgba(0, 0, 0, 0.4)",
+        }
+      )
+      .setOrigin(0.5)
+      .setScrollFactor(0);
+
     const xPos = this.cameras.main.centerX;
     const yPos = this.cameras.main.centerY;
     const playerFrame = null;
@@ -153,7 +174,6 @@ class GameScene extends Phaser.Scene {
     if (this.player) {
       this.player.update(time, delta);
       this.playerHpText.setText(`HP: ${this.player.health}`);
-
       this.playerNameTag.x = this.player.x;
       this.playerNameTag.y = this.player.y + 10;
     }
@@ -164,6 +184,11 @@ class GameScene extends Phaser.Scene {
           enemy.update(time, delta);
         }
       }, this);
+    }
+
+    if (this.keys.Esc.isDown) {
+      this.scene.pause("GameScene");
+      this.scene.launch("PauseScene");
     }
 
     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
@@ -186,7 +211,7 @@ const config = {
     width: gameWidth,
     height: gameHeight,
   },
-  scene: [MenuScene, GameScene, SettingScene],
+  scene: [MenuScene, GameScene, SettingScene, PauseScene],
   physics: {
     default: "arcade",
     arcade: {
