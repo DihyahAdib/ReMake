@@ -1,25 +1,51 @@
 //game.js
 
-import {
-  getPlayerDefaults,
-  createPlayerWithTag,
-} from "../src/utils/playerUtils.js";
 import { Enemy } from "../src/enemy.js";
 import { MenuScene } from "./scenes&menus/mainMenu.js";
 import { PauseScene } from "./scenes&menus/pauseMenu.js";
 import { SettingScene } from "./scenes&menus/settingsMenu.js";
+import { TutorialScene } from "./scenes&menus/tutorialScene.js";
+import { createPlayerWithTag } from "../src/utils/playerUtils.js";
 
 export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
 export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
 
 class GameScene extends Phaser.Scene {
   enemyGroup = null;
+  doorGroup = null;
+  roomContentGroup = null;
   player = null;
   playerNameTag = null;
   playerHpText = null;
   fpsText = null;
   keys = null;
   escText = null;
+
+  rooms = {
+    room1: {
+      background: "room1_bg",
+      connections: {
+        right: "room2",
+      },
+      playerSpawnPoints: {
+        right: { x: 100, y: 300 },
+      },
+    },
+
+    room2: {
+      background: "room2_bg",
+      connections: {
+        left: "room1",
+        right: "room3",
+        up: "room4",
+      },
+      playerSpawnPoints: {
+        left: { x: 700, y: 300 },
+        right: { x: 100, y: 300 },
+        down: { x: 400, y: 100 },
+      },
+    },
+  };
 
   constructor() {
     super({ key: "GameScene" });
@@ -28,9 +54,14 @@ class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
+    this.load.image("room1_bg", "assets/room1_background.png");
+    this.load.image("room2_bg", "assets/room2_background.png");
+    this.load.image("door_trigger", "assets/door_trigger_placeholder.png");
   }
 
   create() {
+    console.log("The Game Scene Has Been Instantiated");
+
     this.cameras.main.setBackgroundColor("#044");
 
     this.keys = this.input.keyboard.addKeys({
@@ -57,6 +88,9 @@ class GameScene extends Phaser.Scene {
     this.playerNameTag = playerNameTag;
 
     this.enemyGroup = this.physics.add.group();
+
+    this.currentRoomKey = "roomA";
+    this.loadRoom(this.currentRoomKey);
 
     const enemyDefinitions = [
       {
@@ -151,60 +185,152 @@ class GameScene extends Phaser.Scene {
     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
   }
 
+  loadRoom(roomKey, entryDirection = null) {
+    if (this.roomContentGroup) {
+      this.roomContentGroup.clear(true, true); // true, true = destroy
+    }
+    if (this.doorGroup) {
+      this.doorGroup.clear(true, true);
+    }
+    if (this.enemyGroup) {
+      this.enemyGroup.clear(true, true);
+    }
+
+    this.roomContentGroup = this.add.group();
+    this.doorGroup = this.physics.add.staticGroup();
+
+    const roomData = this.rooms[roomKey];
+    if (!roomData) {
+      console.error(`Room data not found for key: ${roomKey}`);
+      return;
+    }
+
+    this.currentRoomKey = roomKey;
+
+    const bg = this.add.image(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY,
+      roomData.background
+    );
+    bg.setOrigin(0.5);
+    bg.setDepth(-1);
+    this.roomContentGroup.add(bg);
+
+    if (entryDirection && roomData.playerSpawnPoints[entryDirection]) {
+      const spawnPoint = roomData.playerSpawnPoints[entryDirection];
+      this.player.setPosition(spawnPoint.x, spawnPoint.y);
+    } else {
+      this.player.setPosition(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY + 50
+      );
+    }
+
+    // 6. Create the interactive door zones for this room
+    this.createRoomDoors(roomData.connections);
+
+    // (Later: Add logic here to spawn enemies, items based on roomData)
+    console.log(`Loaded room: ${roomKey}`);
+  }
+
+  createRoomDoors(connections) {
+    const doorThickness = 20; // How thick the invisible door trigger is
+    const screenWidth = this.cameras.main.width;
+    const screenHeight = this.cameras.main.height;
+
+    // Right Door
+    if (connections.right) {
+      const door = this.doorGroup.create(
+        screenWidth - doorThickness / 2,
+        screenHeight / 2,
+        "door_trigger"
+      );
+      door.setVisible(false);
+      door.setOrigin(0.5);
+      door.displayWidth = doorThickness;
+      door.displayHeight = screenHeight;
+      door.setData("targetRoom", connections.right);
+      door.setData("entryDirection", "left");
+      door.body.allowGravity = false;
+      door.body.setImmovable(true);
+    }
+    // Left Door
+    if (connections.left) {
+      const door = this.doorGroup.create(
+        doorThickness / 2,
+        screenHeight / 2,
+        "door_trigger"
+      );
+      door.setVisible(false);
+      door.setOrigin(0.5);
+      door.displayWidth = doorThickness;
+      door.displayHeight = screenHeight;
+      door.setData("targetRoom", connections.left);
+      door.setData("entryDirection", "right");
+      door.body.allowGravity = false;
+      door.body.setImmovable(true);
+    }
+    // Up Door
+    if (connections.up) {
+      const door = this.doorGroup.create(
+        screenWidth / 2,
+        doorThickness / 2,
+        "door_trigger"
+      );
+      door.setVisible(false);
+      door.setOrigin(0.5);
+      door.displayWidth = screenWidth;
+      door.displayHeight = doorThickness;
+      door.setData("targetRoom", connections.up);
+      door.setData("entryDirection", "down");
+      door.body.allowGravity = false;
+      door.body.setImmovable(true);
+    }
+    // Down Door
+    if (connections.down) {
+      const door = this.doorGroup.create(
+        screenWidth / 2,
+        screenHeight - doorThickness / 2,
+        "door_trigger"
+      );
+      door.setVisible(false);
+      door.setOrigin(0.5);
+      door.displayWidth = screenWidth;
+      door.displayHeight = doorThickness;
+      door.setData("targetRoom", connections.down);
+      door.setData("entryDirection", "up");
+      door.body.allowGravity = false;
+      door.body.setImmovable(true);
+    }
+
+    // Set up overlap detection between the player and any door in the doorGroup
+    // The `handleRoomTransition` method will be called when an overlap occurs.
+    this.physics.add.overlap(
+      this.player,
+      this.doorGroup,
+      this.handleRoomTransition,
+      null,
+      this
+    );
+  }
+
+  handleRoomTransition(player, door) {
+    const targetRoomKey = door.getData("targetRoom");
+    const entryDirection = door.getData("entryDirection");
+
+    // Prevent rapid transitions if player is still in the overlap zone
+    // You might want a cooldown or check if player is "moving" into the door
+    // For simplicity, we'll just transition.
+    if (targetRoomKey) {
+      console.log(
+        `Transitioning to room: ${targetRoomKey} (entering from ${entryDirection})`
+      );
+      this.loadRoom(targetRoomKey, entryDirection);
+    }
+  }
+
   handlePlayerEnemyOverlap(player, enemy) {
     player.takeDamage(enemy.damage);
-  }
-}
-
-export class TutorialScene extends Phaser.Scene {
-  player = null;
-  playerNameTag = null;
-  keys = null;
-
-  constructor() {
-    super({ key: "TutorialScene" });
-  }
-
-  preload() {
-    this.load.image("player", "assets/Cat.png");
-  }
-
-  create() {
-    this.cameras.main.setBackgroundColor("rgb(192, 192, 192)");
-
-    const xPos = this.cameras.main.centerX;
-    const yPos = this.cameras.main.centerY;
-
-    const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos, {
-      initialSpeed: 150,
-    });
-    this.player = player;
-    this.playerNameTag = playerNameTag;
-
-    this.add
-      .text(xPos, 100, "Welcome to the Tutorial!", {
-        fontSize: "40px",
-        fill: "#000",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .text(xPos, yPos + 150, "Use WASD to move", {
-        fontSize: "24px",
-        fill: "#000",
-        align: "center",
-      })
-      .setOrigin(0.5);
-  }
-
-  update(time, delta) {
-    if (this.player) {
-      this.player.update(time, delta);
-      const nameTagYOffset = this.player.displayHeight / 2 + 10;
-      this.playerNameTag.x = this.player.x;
-      this.playerNameTag.y = this.player.y - nameTagYOffset;
-    }
   }
 }
 
@@ -220,7 +346,14 @@ const config = {
     width: gameWidth,
     height: gameHeight,
   },
-  scene: [MenuScene, TutorialScene, GameScene, SettingScene, PauseScene],
+  scene: [
+    MenuScene,
+    TutorialScene,
+    // TutorialScene2,
+    GameScene,
+    SettingScene,
+    PauseScene,
+  ],
   physics: {
     default: "arcade",
     arcade: {

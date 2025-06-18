@@ -27,11 +27,17 @@ export class MenuScene extends Phaser.Scene {
 
     startMnBtn.on("pointerdown", () => {
       if (!hasSeenTutorial) {
-        this.scene.start("TutorialScene");
-        console.log("Starting TutorialScene");
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
+        this.cameras.main.once("camerafadeoutcomplete", () => {
+          this.scene.start("TutorialScene");
+          console.log("Starting TutorialScene");
+        });
       } else {
-        this.scene.start("GameScene");
-        console.log("Starting GameScene (tutorial already seen)");
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
+        this.cameras.main.once("camerafadeoutcomplete", () => {
+          this.scene.start("GameScene");
+          console.log("Starting GameScene (tutorial already seen)");
+        });
       }
     });
 
