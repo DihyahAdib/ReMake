@@ -34,8 +34,9 @@ export class PauseScene extends Phaser.Scene {
     btmPanel.fillStyle(0x000000, 1);
 
     panel.fillRoundedRect(0, 0, UiDim.panelWidth, UiDim.panelHeight, 20);
-    topPanel.fillRect(0, 0); // finish top and bottom black bars here
+    topPanel.fillRect(0, 0, 50, 50); // Black top
 
+    btmPanel.fillRect(0, 0, 50, 50); // Black btm
     this.uiContainer = this.add.container(gameWidth / 2, gameHeight / 2);
     this.uiContainer.add(panel);
 

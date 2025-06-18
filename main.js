@@ -49,7 +49,7 @@ function createWindow() {
     autoHideMenuBar: true,
   });
   Menu.setApplicationMenu(null);
-  mainWindow.loadFile("index.html");
+  mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
   mainWindow.webContents.openDevTools();
 
   const disableFullScreenOnStart = store.get("disableFullScreen", false);

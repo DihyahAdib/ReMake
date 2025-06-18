@@ -5,7 +5,7 @@ export class MenuScene extends Phaser.Scene {
     super({ key: "MenuScene" });
   }
 
-  create() {
+  async create() {
     this.cameras.main.setBackgroundColor("#222");
 
     const centerX = this.cameras.main.centerX;
@@ -20,8 +20,19 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
+    const hasSeenTutorial = await window.myUniqueElectronAPI.getSetting(
+      "hasSeenTutorial",
+      false
+    );
+
     startMnBtn.on("pointerdown", () => {
-      this.scene.start("GameScene");
+      if (!hasSeenTutorial) {
+        this.scene.start("TutorialScene");
+        console.log("Starting TutorialScene");
+      } else {
+        this.scene.start("GameScene");
+        console.log("Starting GameScene (tutorial already seen)");
+      }
     });
 
     const settingsMnBtn = this.add
@@ -34,7 +45,9 @@ export class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     settingsMnBtn.on("pointerdown", () => {
-      this.scene.switch("SettingScene");
+      if (!hasSeenTutorial) {
+        this.scene.switch("SettingScene");
+      }
     });
   }
 }
