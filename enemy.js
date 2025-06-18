@@ -23,7 +23,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.mobsSpeedIncreaseCount = 0;
   }
 
-  update(time, delta) {
+  update(delta) {
     if (this.isDead) return;
     this.move();
   }

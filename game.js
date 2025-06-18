@@ -2,9 +2,9 @@
 
 import { Player } from "./player.js";
 import { Enemy } from "./enemy.js";
-import { MenuScene } from "./scenes/mainMenu.js";
-import { PauseScene } from "./scenes/pauseMenu.js";
-import { SettingScene } from "./scenes/settingsMenu.js";
+import { MenuScene } from "./scenes&menus/mainMenu.js";
+import { PauseScene } from "./scenes&menus/pauseMenu.js";
+import { SettingScene } from "./scenes&menus/settingsMenu.js";
 
 export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
 export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
@@ -15,6 +15,7 @@ class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: "GameScene" });
     this.toggleEsc = false;
+    this.hasSeenTutorial = false;
   }
 
   preload() {
@@ -170,9 +171,9 @@ class GameScene extends Phaser.Scene {
     this.fpsText.setScrollFactor(0);
   }
 
-  update(time, delta) {
+  update(delta) {
     if (this.player) {
-      this.player.update(time, delta);
+      this.player.update(delta);
       this.playerHpText.setText(`HP: ${this.player.health}`);
       this.playerNameTag.x = this.player.x;
       this.playerNameTag.y = this.player.y + 10;
@@ -181,7 +182,7 @@ class GameScene extends Phaser.Scene {
     if (this.enemyGroup) {
       this.enemyGroup.children.each(function (enemy) {
         if (enemy.active) {
-          enemy.update(time, delta);
+          enemy.update(delta);
         }
       }, this);
     }

@@ -45,7 +45,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  update(time, delta) {
+  update(delta) {
     if (this.isDead) return;
     const deltaSec = delta / 1000;
     this.handleMovement(deltaSec);
