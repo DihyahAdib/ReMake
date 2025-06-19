@@ -1,5 +1,5 @@
 //pauseMenu.js
-import { gameWidth, gameHeight } from "../game.js";
+import { gameHeight, gameWidth } from "../utils/screenUtils.js";
 
 export class PauseScene extends Phaser.Scene {
   constructor() {

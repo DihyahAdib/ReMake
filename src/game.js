@@ -1,15 +1,14 @@
 //game.js
 
-import { Enemy } from "../src/enemy.js";
+import { gameHeight, gameWidth } from "./utils/screenUtils.js";
 import { MenuScene } from "./scenes&menus/mainMenu.js";
+import { TutorialScene } from "./scenes&menus/tutorialScene.js";
+import { Enemy } from "../src/enemy.js";
 import { PauseScene } from "./scenes&menus/pauseMenu.js";
 import { SettingScene } from "./scenes&menus/settingsMenu.js";
-import { TutorialScene } from "./scenes&menus/tutorialScene.js";
 import { createPlayerWithTag } from "../src/utils/playerUtils.js";
 
-export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
-export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
-
+// PUT THIS GAMESCENE CLASS IN ITS OWN FILE
 class GameScene extends Phaser.Scene {
   enemyGroup = null;
   doorGroup = null;
@@ -28,7 +27,8 @@ class GameScene extends Phaser.Scene {
         right: "room2",
       },
       playerSpawnPoints: {
-        right: { x: 100, y: 300 },
+        right: { x: 150, y: gameHeight / 2 },
+        default: { x: gameWidth / 2, y: gameHeight / 2 + 50 },
       },
     },
 
@@ -61,8 +61,8 @@ class GameScene extends Phaser.Scene {
 
   create() {
     console.log("The Game Scene Has Been Instantiated");
-
-    this.cameras.main.setBackgroundColor("#044");
+    this.cameras.main.fadeIn(500, 0, 0, 0);
+    // this.cameras.main.setBackgroundColor("rgb(0, 68, 68)");
 
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
@@ -89,7 +89,7 @@ class GameScene extends Phaser.Scene {
 
     this.enemyGroup = this.physics.add.group();
 
-    this.currentRoomKey = "roomA";
+    this.currentRoomKey = "room1";
     this.loadRoom(this.currentRoomKey);
 
     const enemyDefinitions = [
@@ -187,13 +187,15 @@ class GameScene extends Phaser.Scene {
 
   loadRoom(roomKey, entryDirection = null) {
     if (this.roomContentGroup) {
-      this.roomContentGroup.clear(true, true); // true, true = destroy
+      this.roomContentGroup.clear(true, true);
     }
     if (this.doorGroup) {
       this.doorGroup.clear(true, true);
     }
     if (this.enemyGroup) {
       this.enemyGroup.clear(true, true);
+    } else {
+      this.enemyGroup = this.physics.add.group();
     }
 
     this.roomContentGroup = this.add.group();
@@ -216,19 +218,44 @@ class GameScene extends Phaser.Scene {
     bg.setDepth(-1);
     this.roomContentGroup.add(bg);
 
-    if (entryDirection && roomData.playerSpawnPoints[entryDirection]) {
-      const spawnPoint = roomData.playerSpawnPoints[entryDirection];
-      this.player.setPosition(spawnPoint.x, spawnPoint.y);
-    } else {
-      this.player.setPosition(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY + 50
-      );
+    let spawnPoint = roomData.playerSpawnPoints[entryDirection];
+    if (!spawnPoint) {
+      spawnPoint = roomData.playerSpawnPoints.default || {
+        x: this.cameras.main.centerX,
+        y: this.cameras.main.centerY + 50,
+      };
     }
+    this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
-    // 6. Create the interactive door zones for this room
     this.createRoomDoors(roomData.connections);
 
+    if (roomData.enemies && roomData.enemies.length > 0) {
+      roomData.enemies.forEach((enemyDef) => {
+        const enemyX = this.cameras.main.centerX + enemyDef.xOffset;
+        const enemyY = this.cameras.main.centerY + enemyDef.yOffset;
+        const newEnemy = new Enemy(
+          this,
+          enemyX,
+          enemyY,
+          "enemy",
+          null,
+          enemyDef.id,
+          enemyDef.speed,
+          enemyDef.damage,
+          enemyDef.health
+        );
+        this.enemyGroup.add(newEnemy);
+      });
+
+      this.physics.add.collider(this.player, this.enemyGroup);
+      this.physics.add.overlap(
+        this.player,
+        this.enemyGroup,
+        this.handlePlayerEnemyOverlap,
+        null,
+        this
+      );
+    }
     // (Later: Add logic here to spawn enemies, items based on roomData)
     console.log(`Loaded room: ${roomKey}`);
   }
@@ -346,14 +373,7 @@ const config = {
     width: gameWidth,
     height: gameHeight,
   },
-  scene: [
-    MenuScene,
-    TutorialScene,
-    // TutorialScene2,
-    GameScene,
-    SettingScene,
-    PauseScene,
-  ],
+  scene: [MenuScene, TutorialScene, GameScene, SettingScene, PauseScene],
   physics: {
     default: "arcade",
     arcade: {

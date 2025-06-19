@@ -1,5 +1,5 @@
 //settingsScene.js
-import { gameWidth, gameHeight } from "../game.js";
+import { gameHeight, gameWidth } from "../utils/screenUtils.js";
 
 export const settingsButtonStyle = {
   fontSize: "32px",

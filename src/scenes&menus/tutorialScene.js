@@ -1,6 +1,8 @@
 //tutorialScene
+
 import { createPlayerWithTag } from "../utils/playerUtils.js";
-import { gameHeight, gameWidth } from "../game.js";
+import { gameHeight, gameWidth } from "../utils/screenUtils.js";
+
 export class TutorialScene extends Phaser.Scene {
   player = null;
   playerNameTag = null;
