@@ -18,12 +18,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.setCollideWorldBounds(true);
+    this.setCollideWorldBounds(false);
     this.setOrigin(0.5);
     this.body.setDamping(true);
     this.body.setDrag(100);
-
-    // this.body.immovable = true;
 
     this.currentScene = scene;
     this.attackDamage = attackDamage;

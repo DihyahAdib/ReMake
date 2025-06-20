@@ -18,26 +18,20 @@ if (disableVSync) {
 try {
   require("electron-reloader")(module, {});
 } catch (_) {
-  console.log(
-    "electron-reloader not loaded (likely in production or not installed)"
-  );
+  console.log("electron-reloader not loaded (likely in production or not installed)");
 }
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth, height: screenHeight } =
-    primaryDisplay.workAreaSize;
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
-  console.log(
-    "Preload script path being loaded:",
-    path.join(__dirname, "preload.js")
-  );
+  console.log("Preload script path being loaded:", path.join(__dirname, "preload.js"));
 
   const mainWindow = new BrowserWindow({
     width: store.get("gameWidth", screenWidth),
     height: store.get("gameWidth", screenHeight),
 
-    icon: path.join(__dirname, "assets/icon.png"),
+    icon: path.join(__dirname, "src", "assets/icon.png"),
 
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),

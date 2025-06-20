@@ -57,7 +57,7 @@ export class TutorialScene extends Phaser.Scene {
 
     continueButton.on("pointerdown", async () => {
       await window.myUniqueElectronAPI.setSetting("hasSeenTutorial", true);
-      this.cameras.main.fadeOut(1000, 0, 0, 0); // Fade to black
+      this.cameras.main.fadeOut(1000, 0, 0, 0);
       this.cameras.main.once("camerafadeoutcomplete", () => {
         this.scene.switch("GameScene");
       });

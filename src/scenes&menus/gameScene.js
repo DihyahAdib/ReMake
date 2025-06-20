@@ -1,6 +1,5 @@
 //gameScene.js
 
-import { Player } from "../player.js";
 import { Enemy } from "../enemy.js";
 import { gameWidth, gameHeight } from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
@@ -9,6 +8,7 @@ export class GameScene extends Phaser.Scene {
   enemyGroup = null;
   doorGroup = null;
   roomContentGroup = null;
+  roomWallsGroup = null;
   player = null;
   playerNameTag = null;
   playerHpText = null;
@@ -78,10 +78,7 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     console.log("The Game Scene Has Been Instantiated");
-
-    this.cameras.main.setBackgroundColor("#044");
-    this.cameras.main.fadeIn(500, 0, 0, 0);
-
+    this.cameras.main.fadeIn(400, 0, 0, 0);
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
@@ -103,6 +100,7 @@ export class GameScene extends Phaser.Scene {
 
     this.enemyGroup = this.physics.add.group();
     this.roomContentGroup = this.add.group();
+    this.roomWallsGroup = this.physics.add.staticGroup();
     this.doorGroup = this.physics.add.staticGroup();
 
     // Load the initial room
@@ -158,15 +156,9 @@ export class GameScene extends Phaser.Scene {
   loadRoom(roomKey, entryDirection = null) {
     console.log(`Loading room: ${roomKey}, Entry direction: ${entryDirection}`);
 
-    if (this.roomContentGroup) {
-      this.roomContentGroup.clear(true, true);
-    }
-    if (this.doorGroup) {
-      this.doorGroup.clear(true, true);
-    }
-    if (this.enemyGroup) {
-      this.enemyGroup.clear(true, true);
-    }
+    if (this.roomContentGroup) this.roomContentGroup.clear(true, true);
+    if (this.doorGroup) this.doorGroup.clear(true, true);
+    if (this.enemyGroup) this.enemyGroup.clear(true, true);
 
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
@@ -187,19 +179,28 @@ export class GameScene extends Phaser.Scene {
     );
     bg.setOrigin(0.5);
     bg.setDepth(-1);
+
+    // Scale background to fit the screen
+    const scaleX = gameWidth / bg.width;
+    const scaleY = gameHeight / bg.height;
+    const scale = Math.min(scaleX, scaleY);
+    bg.setScale(scale);
     this.roomContentGroup.add(bg);
 
+    // Set player spawn point
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
-        x: this.cameras.main.centerX,
-        y: this.cameras.main.centerY + 50,
+        x: gameWidth / 2,
+        y: gameHeight / 2,
       };
     }
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
+    // Create doors for room transitions
     this.createRoomDoors(roomData.connections);
 
+    // Spawn enemies
     if (roomData.enemies && roomData.enemies.length > 0) {
       roomData.enemies.forEach((enemyDef) => {
         const enemyX = this.cameras.main.centerX + enemyDef.xOffset;
@@ -270,7 +271,7 @@ export class GameScene extends Phaser.Scene {
     }
     // Up Door
     if (connections.up) {
-      const door = this.doorGroup.create(screenWidth / 2, doorThickness / 2, "door_trigger");
+      const door = this.doorGroup.create(screenWidth / 4, doorThickness / 2, "door_trigger");
       door.setVisible(false);
       door.setOrigin(0.5);
       door.displayWidth = screenWidth;
@@ -311,8 +312,16 @@ export class GameScene extends Phaser.Scene {
     const entryDirection = door.getData("entryDirection");
 
     if (targetRoomKey && this.currentRoomKey !== targetRoomKey) {
-      console.log(`Transitioning to room: ${targetRoomKey} (entering from ${entryDirection})`);
-      this.loadRoom(targetRoomKey, entryDirection);
+      console.log(`Entering to room: ${targetRoomKey} (entering from ${entryDirection})`);
+
+      this.physics.world.disable(this.player);
+      this.cameras.main.fadeOut(250, 220, 220, 220);
+
+      this.cameras.main.once("camerafadeoutcomplete", () => {
+        this.loadRoom(targetRoomKey, entryDirection);
+        this.cameras.main.fadeIn(250, 220, 220, 220);
+        this.physics.world.enable(this.player);
+      });
     }
   }
 
