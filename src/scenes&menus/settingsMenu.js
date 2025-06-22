@@ -11,10 +11,20 @@ export const settingsButtonStyle = {
 };
 
 export class SettingScene extends Phaser.Scene {
+  previousSceneKey = null;
+
   constructor() {
     super({ key: "SettingScene" });
     this.disableVSync = false;
     this.disableFullScreen = false;
+  }
+
+  init(data) {
+    if (data && data.from) {
+      this.previousSceneKey = data.from;
+    } else {
+      this.previousSceneKey = null;
+    }
   }
 
   async create() {
@@ -24,7 +34,12 @@ export class SettingScene extends Phaser.Scene {
       .text(40, 40, "Back", settingsButtonStyle)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-        this.scene.switch("MenuScene");
+        if (this.previousSceneKey === "PauseScene") {
+          this.scene.stop("SettingScene");
+          this.scene.launch("PauseScene");
+        } else {
+          this.scene.switch("MenuScene");
+        }
       });
 
     // --- VSync Toggle ---
@@ -33,22 +48,15 @@ export class SettingScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    this.disableVSync = await window.myUniqueElectronAPI.getSetting(
-      "disableVSync"
-    );
+    this.disableVSync = await window.myUniqueElectronAPI.getSetting("disableVSync");
     this.updateVSyncButtonText();
 
     this.toggleVSyncButton.on("pointerdown", async () => {
       this.disableVSync = !this.disableVSync;
       this.updateVSyncButtonText();
-      await window.myUniqueElectronAPI.setSetting(
-        "disableVSync",
-        this.disableVSync
-      );
+      await window.myUniqueElectronAPI.setSetting("disableVSync", this.disableVSync);
 
-      alert(
-        "VSync setting changed. The application will now restart for changes to take effect."
-      );
+      alert("VSync setting changed. The application will now restart for changes to take effect.");
     });
 
     // --- FullScreen Toggle ---
@@ -57,28 +65,21 @@ export class SettingScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    this.disableFullScreen = await window.myUniqueElectronAPI.getSetting(
-      "disableFullScreen"
-    );
+    this.disableFullScreen = await window.myUniqueElectronAPI.getSetting("disableFullScreen");
     this.updateFullScreenButtonText();
 
     this.toggleFullScreenButton.on("pointerdown", async () => {
       this.disableFullScreen = !this.disableFullScreen;
       this.updateFullScreenButtonText();
 
-      await window.myUniqueElectronAPI.setSetting(
-        "disableFullScreen",
-        this.disableFullScreen
-      );
+      await window.myUniqueElectronAPI.setSetting("disableFullScreen", this.disableFullScreen);
 
       window.myUniqueElectronAPI.toggleFullScreen(!this.disableFullScreen);
     });
   }
 
   updateVSyncButtonText() {
-    this.toggleVSyncButton.setText(
-      `VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`
-    );
+    this.toggleVSyncButton.setText(`VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`);
   }
   updateFullScreenButtonText() {
     this.toggleFullScreenButton.setText(

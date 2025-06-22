@@ -20,10 +20,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    const hasSeenTutorial = await window.myUniqueElectronAPI.getSetting(
-      "hasSeenTutorial",
-      false
-    );
+    const hasSeenTutorial = await window.myUniqueElectronAPI.getSetting("hasSeenTutorial", false);
 
     startMnBtn.on("pointerdown", () => {
       if (!hasSeenTutorial) {
@@ -51,9 +48,7 @@ export class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     settingsMnBtn.on("pointerdown", () => {
-      if (!hasSeenTutorial) {
-        this.scene.switch("SettingScene");
-      }
+      this.scene.switch("SettingScene");
     });
   }
 }

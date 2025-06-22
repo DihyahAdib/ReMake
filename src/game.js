@@ -9,9 +9,6 @@ import { SettingScene } from "./scenes&menus/settingsMenu.js";
 
 const config = {
   type: Phaser.AUTO,
-  width: gameWidth,
-  height: gameHeight,
-  backgroundColor: "#000000",
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,

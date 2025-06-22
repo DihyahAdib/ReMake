@@ -70,10 +70,33 @@ export class PauseScene extends Phaser.Scene {
 
     this.uiContainer.add(resumeBtn);
 
+    const settingsBtn = this.add
+      .text(0, 0, "Settings", {
+        fontSize: "32px",
+        fontFamily: "Arial",
+        color: "#ffffff",
+        backgroundColor: "#555",
+        padding: { x: 20, y: 10 },
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    settingsBtn.on("pointerdown", () => {
+      this.scene.stop("PauseScene");
+      this.scene.launch("SettingScene", { from: "PauseScene" });
+    });
+
+    this.uiContainer.add(settingsBtn);
+
     this.uiContainer.setScale(0);
     this.uiContainer.setAlpha(0);
     this.uiContainer.setDepth(4);
     this.uiContainer.setVisible(false);
+
+    this.keys = this.input.keyboard.addKeys({
+      Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+    });
 
     this.showUIPanel();
   }
@@ -117,6 +140,12 @@ export class PauseScene extends Phaser.Scene {
       //   this.cameras.main.setBackgroundColor("rgba(0, 0, 0, 0.4)");
       // },
     });
+  }
+
+  update() {
+    if (this.keys && this.keys.Esc.isDown) {
+      this.hideUIPanel();
+    }
   }
 
   hideUIPanel() {

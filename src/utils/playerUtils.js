@@ -11,7 +11,7 @@ export const getPlayerDefaults = (x, y) => ({
   texture: "player",
   frame: null,
   initialDamage: 5,
-  initialSpeed: 250,
+  initialSpeed: 450,
   initialHealth: 100,
   level: 0,
   name: "Bon bon",
