@@ -8,6 +8,9 @@ export class PauseScene extends Phaser.Scene {
     barHeight: 90,
   };
 
+  canAccessPauseMenu = true;
+  interactionCoolDown = 500;
+
   constructor() {
     super({ key: "PauseScene" });
   }
@@ -65,7 +68,9 @@ export class PauseScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     resumeBtn.on("pointerdown", () => {
-      this.hideUIPanel();
+      if (this.canAccessPauseMenu) {
+        this.hideUIPanel();
+      }
     });
 
     this.uiContainer.add(resumeBtn);
@@ -97,28 +102,38 @@ export class PauseScene extends Phaser.Scene {
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
-
     this.showUIPanel();
   }
 
-  showUIPanel() {
-    this.uiContainer.setVisible(true);
+  update() {
+    if (this.canAccessPauseMenu && this.keys && Phaser.Input.Keyboard.JustDown(this.keys.Esc)) {
+      if (this.uiContainer.visible) {
+        this.hideUIPanel();
+      }
+    }
+  }
 
+  showUIPanel() {
+    this.canAccessPauseMenu = false;
+
+    this.uiContainer.setVisible(true);
     this.dimBackground.setVisible(true);
 
-    const topBarTargetY = gameHeight / 2 - this.UiDim.panelHeight / 2 - this.UiDim.barHeight / 2;
-    const bottomBarTargetY = gameHeight / 2 + this.UiDim.panelHeight / 2 + this.UiDim.barHeight / 2;
+    const topBarTargetY = 90 - this.UiDim.barHeight / 2;
 
     this.tweens.add({
       targets: this.topBar,
-      y: topBarTargetY, // Target position for top bar
+      y: topBarTargetY,
       ease: "Cubic.Out",
       duration: 400,
     });
 
+    const bottomBarTargetY = gameHeight - 90 + this.UiDim.barHeight / 2;
+
     this.tweens.add({
       targets: this.bottomBar,
-      y: bottomBarTargetY, // Target position for bottom bar
+      height: this.UiDim.barHeight,
+      y: bottomBarTargetY,
       ease: "Cubic.Out",
       duration: 400,
     });
@@ -136,32 +151,28 @@ export class PauseScene extends Phaser.Scene {
       alpha: 0.4,
       ease: "Linear",
       duration: 400,
-      // onComplete: () => {
-      //   this.cameras.main.setBackgroundColor("rgba(0, 0, 0, 0.4)");
-      // },
+      onComplete: () => {
+        this.canAccessPauseMenu = true;
+      },
     });
   }
 
-  update() {
-    if (this.keys && this.keys.Esc.isDown) {
-      this.hideUIPanel();
-    }
-  }
-
   hideUIPanel() {
+    this.canAccessPauseMenu = false;
     const topBarHideY = -this.UiDim.barHeight / 2;
-    const bottomBarHideY = gameHeight + this.UiDim.barHeight / 2;
 
     this.tweens.add({
       targets: this.topBar,
-      y: topBarHideY, // Move top bar off-screen up
+      y: topBarHideY,
       ease: "Cubic.In",
       duration: 300,
     });
 
+    const bottomBarHideY = gameHeight + this.UiDim.barHeight / 2;
+
     this.tweens.add({
       targets: this.bottomBar,
-      y: bottomBarHideY, // Move bottom bar off-screen down
+      y: bottomBarHideY,
       ease: "Cubic.In",
       duration: 300,
     });
@@ -176,7 +187,7 @@ export class PauseScene extends Phaser.Scene {
 
     this.tweens.add({
       targets: this.dimBackground,
-      alpha: 0, // Fade out
+      alpha: 0,
       ease: "Linear",
       duration: 300,
       onComplete: () => {
@@ -184,6 +195,7 @@ export class PauseScene extends Phaser.Scene {
         this.dimBackground.setVisible(false);
         this.scene.stop("PauseScene");
         this.scene.resume("GameScene");
+        this.canAccessPauseMenu = true;
       },
     });
 

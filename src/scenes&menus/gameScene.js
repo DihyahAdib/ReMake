@@ -4,8 +4,24 @@ import { Enemy } from "../enemy.js";
 import { gameWidth, gameHeight } from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
 
-const leftRightOffset = 200;
-const topBottomOffset = 100;
+const rmProps = {
+  roomPaddingWidth: 160,
+  roomPaddingHeight: 80,
+  doorPaddingWidth: 400,
+  doorPaddingHeight: 400,
+  leftRightOffset: 200,
+  topBottomOffset: 100,
+  doorThickness: 50,
+};
+
+const rmDim = {
+  innerRoomWidth: gameWidth - rmProps.roomPaddingWidth,
+  innerRoomHeight: gameHeight - rmProps.roomPaddingHeight,
+  doorWidth: gameWidth / 2 - rmProps.doorPaddingWidth,
+  doorHeight: gameHeight / 2 - rmProps.doorPaddingHeight,
+  roomOffsetX: rmProps.roomPaddingWidth / 2,
+  roomOffsetY: rmProps.roomPaddingHeight / 2,
+};
 
 export class GameScene extends Phaser.Scene {
   enemyGroup = null;
@@ -27,7 +43,7 @@ export class GameScene extends Phaser.Scene {
         right: "room2",
       },
       playerSpawnPoints: {
-        right: { x: gameWidth - leftRightOffset, y: gameHeight / 2 },
+        right: { x: gameWidth - rmProps.leftRightOffset, y: gameHeight / 2 },
         default: { x: gameWidth / 2, y: gameHeight / 2 + 50 },
       },
       enemies: [
@@ -57,7 +73,7 @@ export class GameScene extends Phaser.Scene {
         left: "room1",
       },
       playerSpawnPoints: {
-        left: { x: leftRightOffset, y: gameHeight / 2 },
+        left: { x: rmProps.leftRightOffset, y: gameHeight / 2 },
         default: { x: gameWidth / 2, y: gameHeight / 2 + 50 },
       },
       enemies: [{ id: "chaser_03", xOffset: 200, yOffset: 50, speed: 100, damage: 15, health: 50 }],
@@ -72,15 +88,12 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
-
     this.load.image("R1_bg", "assets/room1_background.png");
     this.load.image("R2_bg", "assets/room2_background.png");
-
     this.load.image("door_trigger", "assets/door_trigger_placeholder.png");
   }
 
   create() {
-    console.log("The Game Scene Has Been Instantiated");
     this.cameras.main.fadeIn(400, 0, 0, 0);
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
@@ -165,38 +178,36 @@ export class GameScene extends Phaser.Scene {
 
     this.currentRoomKey = roomKey;
 
-    // Change these params to change room size & bg scale
-    const roomPaddingWidth = 160;
-    const roomPaddingHeight = 80;
-    const innerRoomWidth = gameWidth - roomPaddingWidth;
-    const innerRoomHeight = gameHeight - roomPaddingHeight;
-
-    const roomOffsetX = roomPaddingWidth / 2;
-    const roomOffsetY = roomPaddingHeight / 2;
-
     const bg = this.add
-      .image(roomOffsetX, roomOffsetY, roomData.background)
+      .image(rmDim.roomOffsetX, rmDim.roomOffsetY, roomData.background)
       .setOrigin(0, 0)
       .setDepth(-1);
 
-    // Scale background to fit the screen
-    const scaleX = innerRoomWidth / bg.width;
-    const scaleY = innerRoomHeight / bg.height;
+    const scaleX = rmDim.innerRoomWidth / bg.width;
+    const scaleY = rmDim.innerRoomHeight / bg.height;
     bg.setScale(scaleX, scaleY);
 
     this.roomContentGroup.add(bg);
 
-    // Defines the world bounds (room's playable areas)
-    this.physics.world.setBounds(roomOffsetX, roomOffsetY, innerRoomWidth, innerRoomHeight);
+    this.physics.world.setBounds(
+      rmDim.roomOffsetX,
+      rmDim.roomOffsetY,
+      rmDim.innerRoomWidth,
+      rmDim.innerRoomHeight
+    );
 
     if (this.debugGraphics) {
       this.debugGraphics.destroy();
     }
     this.debugGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00, alpha: 1 } });
-    this.debugGraphics.strokeRect(roomOffsetX, roomOffsetY, innerRoomWidth, innerRoomHeight);
+    this.debugGraphics.strokeRect(
+      rmDim.roomOffsetX,
+      rmDim.roomOffsetY,
+      rmDim.innerRoomWidth,
+      rmDim.innerRoomHeight
+    );
     this.debugGraphics.setDepth(999);
 
-    // Set player spawn point
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
@@ -204,31 +215,31 @@ export class GameScene extends Phaser.Scene {
         y: gameHeight / 2,
       };
     }
+
     const playerBodyWidthHalf = this.player.body.width / 2;
     const playerBodyHeightHalf = this.player.body.height / 2;
+
     spawnPoint.x = Phaser.Math.Clamp(
       spawnPoint.x,
-      roomOffsetX + playerBodyWidthHalf,
-      roomOffsetX + innerRoomWidth - playerBodyWidthHalf
+      rmDim.roomOffsetX + playerBodyWidthHalf,
+      rmDim.roomOffsetX + rmDim.innerRoomWidth - playerBodyWidthHalf
     );
     spawnPoint.y = Phaser.Math.Clamp(
       spawnPoint.y,
-      roomOffsetY + playerBodyHeightHalf,
-      roomOffsetY + innerRoomHeight - playerBodyHeightHalf
+      rmDim.roomOffsetY + playerBodyHeightHalf,
+      rmDim.roomOffsetY + rmDim.innerRoomHeight - playerBodyHeightHalf
     );
 
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
-    // Create doors for room transitions
     this.createRoomDoors(
       roomData.connections,
-      roomOffsetX,
-      roomOffsetY,
-      innerRoomWidth,
-      innerRoomHeight
+      rmDim.roomOffsetX,
+      rmDim.roomOffsetY,
+      rmDim.innerRoomWidth,
+      rmDim.innerRoomHeight
     );
 
-    // Spawn enemies
     if (roomData.enemies && roomData.enemies.length > 0) {
       roomData.enemies.forEach((enemyDef) => {
         const enemyX = this.cameras.main.centerX + enemyDef.xOffset;
@@ -258,9 +269,8 @@ export class GameScene extends Phaser.Scene {
     }
     console.log(`Loaded room: ${roomKey}`);
   }
-
+  // DONT FORGET TO MAKE ROOMS HITBOX ONLY SLIGHTLY OUTSIDE OF THE PLAYABLE AREA (i.e setBounds) |
   createRoomDoors(connections, roomOffsetX, roomOffsetY, innerRoomWidth, innerRoomHeight) {
-    const doorThickness = 50; // This is fine for the thickness of the trigger
     const roomLeftEdge = roomOffsetX;
     const roomRightEdge = roomOffsetX + innerRoomWidth;
     const roomTopEdge = roomOffsetY;
@@ -268,33 +278,33 @@ export class GameScene extends Phaser.Scene {
     const roomCenterX = roomOffsetX + innerRoomWidth / 2;
     const roomCenterY = roomOffsetY + innerRoomHeight / 2;
 
-    // Right Door (already correct for displayHeight)
+    // Right Door
     if (connections.right) {
       const door = this.doorGroup.create(
-        roomRightEdge - doorThickness / 2,
+        roomRightEdge - rmProps.doorThickness / 2,
         roomCenterY,
         "door_trigger"
       );
       door.setVisible(false);
       door.setOrigin(0.5);
-      door.displayWidth = doorThickness;
-      door.displayHeight = innerRoomHeight; // This is correct for side doors
+      door.displayWidth = rmProps.doorThickness;
+      door.displayHeight = rmDim.doorHeight;
       door.setData("targetRoom", connections.right);
       door.setData("entryDirection", "left");
       door.body.allowGravity = false;
       door.refreshBody();
     }
-    // Left Door (already correct for displayHeight)
+    // Left Door
     if (connections.left) {
       const door = this.doorGroup.create(
-        roomLeftEdge + doorThickness / 2,
+        roomLeftEdge + rmProps.doorThickness / 2,
         roomCenterY,
         "door_trigger"
       );
       door.setVisible(false);
       door.setOrigin(0.5);
-      door.displayWidth = doorThickness;
-      door.displayHeight = innerRoomHeight; // This is correct for side doors
+      door.displayWidth = rmProps.doorThickness;
+      door.displayHeight = rmDim.doorHeight;
       door.setData("targetRoom", connections.left);
       door.setData("entryDirection", "right");
       door.body.allowGravity = false;
@@ -304,13 +314,13 @@ export class GameScene extends Phaser.Scene {
     if (connections.up) {
       const door = this.doorGroup.create(
         roomCenterX,
-        roomTopEdge + doorThickness / 2,
+        roomTopEdge + rmProps.doorThickness / 2,
         "door_trigger"
       );
       door.setVisible(false);
       door.setOrigin(0.5);
-      door.displayWidth = innerRoomWidth; // This is correct for top/bottom doors
-      door.displayHeight = doorThickness; // Height of the trigger
+      door.displayWidth = rmDim.doorWidth;
+      door.displayHeight = rmProps.doorThickness;
       door.setData("targetRoom", connections.up);
       door.setData("entryDirection", "down");
       door.body.allowGravity = false;
@@ -320,13 +330,13 @@ export class GameScene extends Phaser.Scene {
     if (connections.down) {
       const door = this.doorGroup.create(
         roomCenterX,
-        roomBottomEdge - doorThickness / 2,
+        roomBottomEdge - rmProps.doorThickness / 2,
         "door_trigger"
       );
       door.setVisible(false);
       door.setOrigin(0.5);
-      door.displayWidth = innerRoomWidth; // This is correct for top/bottom doors
-      door.displayHeight = doorThickness; // Height of the trigger
+      door.displayWidth = rmDim.doorWidth;
+      door.displayHeight = rmProps.doorThickness;
       door.setData("targetRoom", connections.down);
       door.setData("entryDirection", "up");
       door.body.allowGravity = false;
