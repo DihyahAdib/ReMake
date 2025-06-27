@@ -12,11 +12,11 @@ Build Version - None
 
 # Patche Notes
 
-> 0.015v - fixed door sizes need to interpolate player speeds to carry on through out transition
+> fixed door sizes need to interpolate player speeds to carry on through out transition
 >
 
 
 # Next fixes? 
 
-> 0.015v - add assets for door transition triggers
+> add assets for door transition triggers
 > 
