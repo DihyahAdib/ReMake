@@ -4,23 +4,26 @@ import { Enemy } from "../enemy.js";
 import { gameWidth, gameHeight } from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
 
+const innerRoomCenterX = gameWidth / 2;
+const innerRoomCenterY = gameHeight / 2;
+
 const rmProps = {
   roomPaddingWidth: 160,
   roomPaddingHeight: 80,
   doorPaddingWidth: 400,
   doorPaddingHeight: 400,
-  leftRightOffset: 200,
-  topBottomOffset: 100,
+  leftRightOffset: 180, //these are these values so it wont flash between rooms, remember to put doors IN the walls only a little bit of hit box sticking out
+  topBottomOffset: 150,
   doorThickness: 50,
 };
 
 const rmDim = {
   innerRoomWidth: gameWidth - rmProps.roomPaddingWidth,
   innerRoomHeight: gameHeight - rmProps.roomPaddingHeight,
-  doorWidth: gameWidth / 2 - rmProps.doorPaddingWidth,
-  doorHeight: gameHeight / 2 - rmProps.doorPaddingHeight,
   roomOffsetX: rmProps.roomPaddingWidth / 2,
   roomOffsetY: rmProps.roomPaddingHeight / 2,
+  doorWidth: innerRoomCenterX - rmProps.doorPaddingWidth,
+  doorHeight: innerRoomCenterY - rmProps.doorPaddingHeight,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -43,8 +46,8 @@ export class GameScene extends Phaser.Scene {
         right: "room2",
       },
       playerSpawnPoints: {
-        right: { x: gameWidth - rmProps.leftRightOffset, y: gameHeight / 2 },
-        default: { x: gameWidth / 2, y: gameHeight / 2 + 50 },
+        right: { x: gameWidth - rmProps.leftRightOffset, y: innerRoomCenterY },
+        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
       },
       enemies: [
         {
@@ -71,12 +74,30 @@ export class GameScene extends Phaser.Scene {
       background: "R2_bg",
       connections: {
         left: "room1",
+        up: "room3",
       },
       playerSpawnPoints: {
-        left: { x: rmProps.leftRightOffset, y: gameHeight / 2 },
-        default: { x: gameWidth / 2, y: gameHeight / 2 + 50 },
+        left: { x: rmProps.leftRightOffset, y: innerRoomCenterY },
+        up: { x: innerRoomCenterX, y: rmProps.topBottomOffset },
+        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
       },
       enemies: [{ id: "chaser_03", xOffset: 200, yOffset: 50, speed: 100, damage: 15, health: 50 }],
+      items: [],
+    },
+
+    room3: {
+      background: "R2_bg",
+      connections: {
+        down: "room2",
+      },
+      playerSpawnPoints: {
+        down: {
+          x: innerRoomCenterX,
+          y: gameHeight - rmProps.topBottomOffset,
+        },
+        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
+      },
+      enemies: [],
       items: [],
     },
   };
@@ -100,7 +121,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.escText = this.add
-      .text(gameWidth / 2, gameHeight / 2 + 450, "Press Esc to pause the game", {
+      .text(innerRoomCenterX, innerRoomCenterY + 450, "Press Esc to pause the game", {
         font: "16px Arial",
         fill: "rgba(0, 0, 0, 0.4)",
       })
@@ -211,8 +232,8 @@ export class GameScene extends Phaser.Scene {
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
-        x: gameWidth / 2,
-        y: gameHeight / 2,
+        x: innerRoomCenterX,
+        y: innerRoomCenterY,
       };
     }
 
