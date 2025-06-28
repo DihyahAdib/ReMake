@@ -90,7 +90,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image("enemy", "assets/Enemy.png");
     this.load.image("R1_bg", "assets/room1_background.png");
     this.load.image("R2_bg", "assets/room2_background.png");
-    this.load.image("door_trigger", "assets/door_trigger_placeholder.png");
+    this.load.image("door_trigger", "assets/door.png");
   }
 
   create() {
@@ -285,7 +285,7 @@ export class GameScene extends Phaser.Scene {
         roomCenterY,
         "door_trigger"
       );
-      door.setVisible(false);
+      door.setVisible(true);
       door.setOrigin(0.5);
       door.displayWidth = rmProps.doorThickness;
       door.displayHeight = rmDim.doorHeight;
@@ -301,7 +301,7 @@ export class GameScene extends Phaser.Scene {
         roomCenterY,
         "door_trigger"
       );
-      door.setVisible(false);
+      door.setVisible(true);
       door.setOrigin(0.5);
       door.displayWidth = rmProps.doorThickness;
       door.displayHeight = rmDim.doorHeight;
@@ -317,7 +317,7 @@ export class GameScene extends Phaser.Scene {
         roomTopEdge + rmProps.doorThickness / 2,
         "door_trigger"
       );
-      door.setVisible(false);
+      door.setVisible(true);
       door.setOrigin(0.5);
       door.displayWidth = rmDim.doorWidth;
       door.displayHeight = rmProps.doorThickness;
@@ -333,7 +333,7 @@ export class GameScene extends Phaser.Scene {
         roomBottomEdge - rmProps.doorThickness / 2,
         "door_trigger"
       );
-      door.setVisible(false);
+      door.setVisible(true);
       door.setOrigin(0.5);
       door.displayWidth = rmDim.doorWidth;
       door.displayHeight = rmProps.doorThickness;
