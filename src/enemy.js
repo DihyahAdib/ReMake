@@ -23,30 +23,31 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.mobsSpeedIncreaseCount = 0;
   }
 
-  update(delta) {
+  update(time, delta) {
     if (this.isDead) return;
     this.move();
   }
 
   move() {
-    let playerMaxHealth = this.currentScene.player.mxHealth;
-    let currentPlayerHealth = this.currentScene.player.health;
-    let currentMobBoostThreshold = playerMaxHealth * 0.5;
-
     if (this.currentScene.player && !this.currentScene.player.isDead) {
-      this.currentScene.physics.moveToObject(
-        this,
-        this.currentScene.player,
-        this.speed
-      );
+      this.currentScene.physics.moveToObject(this, this.currentScene.player, this.speed);
     } else {
       this.body.setVelocity(0);
     }
 
-    if (
-      currentPlayerHealth < currentMobBoostThreshold &&
-      this.mobsSpeedIncreaseCount === 0
-    ) {
+    const bounds = this.currentScene.physics.world.bounds;
+    this.x = Phaser.Math.Clamp(this.x, bounds.x + this.width / 2, bounds.right - this.width / 2);
+    this.y = Phaser.Math.Clamp(this.y, bounds.y + this.height / 2, bounds.bottom - this.height / 2);
+
+    this.increaseSpeedThreshold();
+  }
+
+  increaseSpeedThreshold() {
+    let playerMaxHealth = this.currentScene.player.mxHealth;
+    let currentPlayerHealth = this.currentScene.player.health;
+    let currentMobBoostThreshold = playerMaxHealth * 0.5;
+
+    if (currentPlayerHealth < currentMobBoostThreshold && this.mobsSpeedIncreaseCount === 0) {
       this.mobsSpeedIncreaseCount++;
       this.speed += 300;
       console.log(this.speed);

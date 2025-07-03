@@ -32,8 +32,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.playerName = nameTag;
 
     this.isDead = false;
+    this.canDealDamage = true;
     this.canTakeDamage = true;
-    this.damageCooldownDuration = 500;
+    this.damageCooldown = 1000; //enemy dmg tick
 
     this.keys = this.currentScene.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -49,7 +50,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.handleMovement(deltaSec);
   }
 
-  handleMovement(dt) {
+  handleMovement() {
     let moveX = 0;
     let moveY = 0;
 
@@ -67,10 +68,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(moveX * this.speed, moveY * this.speed);
   }
 
+  dealDamage(enemy, amount) {
+    if (!this.canDealDamage || this.isDead) return;
+    if (!enemy || enemy.isDead) return;
+
+    this.currentScene.enemy.health -= amount;
+    console.log(`Enemy Health: ${this.enemy.health}`);
+  }
+
   takeDamage(amount) {
-    if (!this.canTakeDamage || this.isDead) {
-      return;
-    }
+    if (!this.canTakeDamage || this.isDead) return;
 
     this.health -= amount;
     console.log(`Player health: ${this.health}`);
@@ -84,7 +91,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setTint(0xff0000);
 
     this.currentScene.time.delayedCall(
-      this.damageCooldownDuration,
+      this.damageCooldown,
       () => {
         this.canTakeDamage = true;
         this.clearTint();

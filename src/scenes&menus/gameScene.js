@@ -1,46 +1,44 @@
 //gameScene.js
 
 import { Enemy } from "../enemy.js";
-import { gameWidth, gameHeight } from "../utils/screenUtils.js";
+import {
+  gameWidth,
+  gameHeight,
+  innerRoomCenterX,
+  innerRoomCenterY,
+  rmProps,
+} from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
+import { Weapons } from "../weapons.js";
 
-const innerRoomCenterX = gameWidth / 2;
-const innerRoomCenterY = gameHeight / 2;
-
-const rmProps = {
-  roomPaddingWidth: 160,
-  roomPaddingHeight: 80,
-  doorPaddingWidth: 400,
-  doorPaddingHeight: 400,
-  leftRightOffset: 180, //these are these values so it wont flash between rooms, remember to put doors IN the walls only a little bit of hit box sticking out
-  topBottomOffset: 150,
-  doorThickness: 50,
-};
+const { roomPaddingWidth, roomPaddingHeight, doorPaddingWidth, doorPaddingHeight } = rmProps;
 
 const rmDim = {
-  innerRoomWidth: gameWidth - rmProps.roomPaddingWidth,
-  innerRoomHeight: gameHeight - rmProps.roomPaddingHeight,
-  roomOffsetX: rmProps.roomPaddingWidth / 2,
-  roomOffsetY: rmProps.roomPaddingHeight / 2,
-  doorWidth: innerRoomCenterX - rmProps.doorPaddingWidth,
-  doorHeight: innerRoomCenterY - rmProps.doorPaddingHeight,
+  innerRoomWidth: gameWidth - roomPaddingWidth,
+  innerRoomHeight: gameHeight - roomPaddingHeight,
+  roomOffsetX: roomPaddingWidth / 2,
+  roomOffsetY: roomPaddingHeight / 2,
+  doorWidth: innerRoomCenterX - doorPaddingWidth,
+  doorHeight: innerRoomCenterY - doorPaddingHeight,
 };
 
 export class GameScene extends Phaser.Scene {
   enemyGroup = null;
   doorGroup = null;
   roomContentGroup = null;
+  weaponGroup = null;
   player = null;
   playerNameTag = null;
   playerHpText = null;
+
   fpsText = null;
-  keys = null;
   escText = null;
+  keys = null;
   currentRoomKey = null;
   debugGraphics = null;
 
   rooms = {
-    room1: {
+    StartingRoom: {
       background: "R1_bg",
       connections: {
         right: "room2",
@@ -55,7 +53,7 @@ export class GameScene extends Phaser.Scene {
           xOffset: 100,
           yOffset: -100,
           speed: 100,
-          damage: 15,
+          damage: 10,
           health: 50,
         },
         {
@@ -63,17 +61,18 @@ export class GameScene extends Phaser.Scene {
           xOffset: 200,
           yOffset: 50,
           speed: 100,
-          damage: 15,
+          damage: 10,
           health: 50,
         },
       ],
+      weapons: [{ id: "sword", damage: 15, Cooldown: 100 }],
       items: [],
     },
 
     room2: {
       background: "R2_bg",
       connections: {
-        left: "room1",
+        left: "StartingRoom",
         up: "room3",
       },
       playerSpawnPoints: {
@@ -82,6 +81,7 @@ export class GameScene extends Phaser.Scene {
         default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
       },
       enemies: [{ id: "chaser_03", xOffset: 200, yOffset: 50, speed: 100, damage: 15, health: 50 }],
+      weapons: [],
       items: [],
     },
 
@@ -98,6 +98,7 @@ export class GameScene extends Phaser.Scene {
         default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
       },
       enemies: [],
+      weapons: [],
       items: [],
     },
   };
@@ -109,6 +110,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
+    this.load.image("sword", "assets/sword.png");
     this.load.image("R1_bg", "assets/room1_background.png");
     this.load.image("R2_bg", "assets/room2_background.png");
     this.load.image("door_trigger", "assets/door.png");
@@ -136,11 +138,12 @@ export class GameScene extends Phaser.Scene {
     this.playerNameTag = playerNameTag;
 
     this.enemyGroup = this.physics.add.group();
+    this.weaponGroup = this.add.group();
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
 
     // Load the initial room
-    this.currentRoomKey = "room1";
+    this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
 
     this.playerHpText = this.add.text(128, 92, `HP: ${this.player.health}`, {
@@ -184,14 +187,20 @@ export class GameScene extends Phaser.Scene {
   loadRoom(roomKey, entryDirection = null) {
     console.log(`Loading room: ${roomKey}, Entry direction: ${entryDirection}`);
 
+    // Clear gameObjects first
     if (this.roomContentGroup) this.roomContentGroup.clear(true, true);
     if (this.doorGroup) this.doorGroup.clear(true, true);
     if (this.enemyGroup) this.enemyGroup.clear(true, true);
+    if (this.weaponGroup) this.weaponGroup.clear(true, true);
+
+    // Add them back to the respective game groups
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
     this.enemyGroup = this.physics.add.group();
 
     const roomData = this.rooms[roomKey];
+
+    // Error handling
     if (!roomData) {
       console.error(`Room data not found for key: ${roomKey}`);
       return;
@@ -210,6 +219,7 @@ export class GameScene extends Phaser.Scene {
 
     this.roomContentGroup.add(bg);
 
+    // Set playable area
     this.physics.world.setBounds(
       rmDim.roomOffsetX,
       rmDim.roomOffsetY,
@@ -221,6 +231,7 @@ export class GameScene extends Phaser.Scene {
       this.debugGraphics.destroy();
     }
     this.debugGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00, alpha: 1 } });
+
     this.debugGraphics.strokeRect(
       rmDim.roomOffsetX,
       rmDim.roomOffsetY,
@@ -253,6 +264,7 @@ export class GameScene extends Phaser.Scene {
 
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
+    // Invoke the function when creating world/rooms
     this.createRoomDoors(
       roomData.connections,
       rmDim.roomOffsetX,
@@ -260,6 +272,27 @@ export class GameScene extends Phaser.Scene {
       rmDim.innerRoomWidth,
       rmDim.innerRoomHeight
     );
+
+    // If the current room contains any defined weapons, iterate through them,
+    // validate their presence, determine their spawn positions (defaulting to center if not specified)
+    // and instantiate each weapon into the scene
+    if (roomData.weapons && roomData.weapons.length > 0) {
+      roomData.weapons.forEach((weaponDef) => {
+        const weaponPosX = weaponDef.weaponSpawnPointX || innerRoomCenterX;
+        const weaponPosY = weaponDef.weaponSpawnPointY || innerRoomCenterY;
+        const newWeapon = new Weapons(
+          this,
+          weaponPosX,
+          weaponPosY,
+          "PlaceHolder",
+          null,
+          weaponDef.id,
+          weaponDef.damage,
+          weaponDef.Cooldown
+        );
+        this.weaponGroup.add(newWeapon);
+      });
+    }
 
     if (roomData.enemies && roomData.enemies.length > 0) {
       roomData.enemies.forEach((enemyDef) => {
@@ -279,18 +312,29 @@ export class GameScene extends Phaser.Scene {
         this.enemyGroup.add(newEnemy);
       });
 
-      this.physics.add.collider(this.player, this.enemyGroup);
-      this.physics.add.overlap(
+      this.physics.add.collider(
         this.player,
         this.enemyGroup,
-        this.handlePlayerEnemyOverlap,
+        this.handlePlayerEnemyCollision,
         null,
         this
       );
+      this.physics.add.overlap(
+        this.player,
+        this.enemyGroup,
+        this.handlePlayerEnemyCollision,
+        null,
+        this
+      );
+      this.physics.add.collider(this.enemyGroup, this.enemyGroup);
     }
     console.log(`Loaded room: ${roomKey}`);
   }
-  // DONT FORGET TO MAKE ROOMS HITBOX ONLY SLIGHTLY OUTSIDE OF THE PLAYABLE AREA (i.e setBounds) |
+
+  handlePlayerEnemyCollision(player, enemy) {
+    player.takeDamage(enemy.damage);
+  }
+
   createRoomDoors(connections, roomOffsetX, roomOffsetY, innerRoomWidth, innerRoomHeight) {
     const roomLeftEdge = roomOffsetX;
     const roomRightEdge = roomOffsetX + innerRoomWidth;
@@ -383,9 +427,5 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.enable(this.player);
       });
     }
-  }
-
-  handlePlayerEnemyOverlap(player, enemy) {
-    player.takeDamage(enemy.damage);
   }
 }
