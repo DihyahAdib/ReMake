@@ -9,12 +9,14 @@ Game Version - 0.015v
 > Refining the main menu (styling)
 > Creating real background assets for the room bg's
 > Movement mechanics & gist of the game
+> ive added weapons but right now there just a husk - give weapons abilities
+> add restart button to pause menu for testing reasons, add a real reset game button later ( REMOVES ALL SAVED STATS )
+> add saves ( file system ) 
 
 # Patche Notes
 
 > fixed door sizes.
 
+# Next fixes?
 
-# Next fixes? 
-
-> Nothing yet
+> hitboxes should be slightly outside playable area boundaries as to not allow player to get cliped onto it (i.e setBounds)
