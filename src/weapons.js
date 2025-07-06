@@ -22,6 +22,4 @@ export class Weapons extends Phaser.GameObjects.Sprite {
     const deltaSec = delta / 1000;
     this.dealAttackDamage(deltaSec);
   }
-
-  dealAttackDamage(deltaSec) {}
 }

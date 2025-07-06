@@ -30,7 +30,6 @@ export class GameScene extends Phaser.Scene {
   player = null;
   playerNameTag = null;
   playerHpText = null;
-
   fpsText = null;
   escText = null;
   keys = null;
@@ -118,6 +117,7 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.fadeIn(400, 0, 0, 0);
+    // window.myGameScene = this;
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
@@ -138,13 +138,14 @@ export class GameScene extends Phaser.Scene {
     this.playerNameTag = playerNameTag;
 
     this.enemyGroup = this.physics.add.group();
-    this.weaponGroup = this.add.group();
+    this.weaponGroup = this.physics.add.group();
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
 
     // Load the initial room
     this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
+    this.handleItemPickUp();
 
     this.playerHpText = this.add.text(128, 92, `HP: ${this.player.health}`, {
       font: "16px Arial",
@@ -195,6 +196,7 @@ export class GameScene extends Phaser.Scene {
 
     // Add them back to the respective game groups
     this.roomContentGroup = this.add.group();
+    this.weaponGroup = this.physics.add.group();
     this.doorGroup = this.physics.add.staticGroup();
     this.enemyGroup = this.physics.add.group();
 
@@ -426,6 +428,20 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.fadeIn(250, 220, 220, 220);
         this.physics.world.enable(this.player);
       });
+    }
+  }
+
+  handleItemPickUp() {
+    this.physics.add.overlap(this.player, this.weaponGroup, this.onPlayerPickUpWeapon, null, this);
+  }
+
+  onPlayerPickUpWeapon(player, weapon) {
+    player.inventory.push({ id: weapon.id, damage: weapon.damage, Cooldown: weapon.Cooldown });
+    // place the weapon at the players hip
+    // When leaving a room and re entering the texture of the previous weapon still remains - fix this
+    if (player.inventory.length > 0) {
+      console.log("Picked up weapon:", weapon.id, weapon.damage, weapon.Cooldown);
+      weapon.destroy();
     }
   }
 }

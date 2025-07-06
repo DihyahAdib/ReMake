@@ -36,6 +36,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.canTakeDamage = true;
     this.damageCooldown = 1000; //enemy dmg tick
 
+    this.inventory = [];
+
     this.keys = this.currentScene.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
