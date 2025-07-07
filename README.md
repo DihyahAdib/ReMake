@@ -21,4 +21,4 @@ Game Version - 0.015v
 # Next fixes?
 
 - hitboxes should be slightly outside playable area boundaries as to not allow player to get cliped onto it (i.e setBounds)
-- REPLACE ALL STAGNANT GAMEWIDTHS WITH THE CURRENT NEW FUNCTIONS this.getCurrentGameWidth() ETC
+- Replace ALL stagnant gamewidth / heights with the `this.getCurrentGameWidth()` function. etc
