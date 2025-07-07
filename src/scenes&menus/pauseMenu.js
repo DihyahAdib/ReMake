@@ -1,5 +1,5 @@
 //pauseMenu.js
-import { gameHeight, gameWidth, windowCenterX, windowCenterY } from "../utils/screenUtils.js";
+import { windowCenterX, windowCenterY } from "../utils/screenUtils.js";
 
 export class PauseScene extends Phaser.Scene {
   UiDim = {
@@ -8,6 +8,8 @@ export class PauseScene extends Phaser.Scene {
     barWidth: 90,
     barHeight: 150,
     lineThickness: 8,
+    linePaddingX: 180,
+    linePaddingY: 300,
   };
 
   canAccessPauseMenu = true;
@@ -19,6 +21,10 @@ export class PauseScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("rgba(0, 0, 0, 0)");
+
+    this.keys = this.input.keyboard.addKeys({
+      Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+    });
 
     this.dimBackground = this.add
       .rectangle(
@@ -36,8 +42,41 @@ export class PauseScene extends Phaser.Scene {
       .rectangle(
         windowCenterX,
         -this.UiDim.barHeight / 2,
-        gameWidth,
+        this.getCurrentGameWidth(),
         this.UiDim.barHeight,
+        0x774b2a,
+        1
+      )
+      .setDepth(10);
+
+    this.bottomBar = this.add
+      .rectangle(
+        windowCenterX,
+        this.getCurrentGameHeight() + this.UiDim.barHeight / 2,
+        this.getCurrentGameWidth(),
+        this.UiDim.barHeight,
+        0x774b2a,
+        1
+      )
+      .setDepth(10);
+
+    this.leftBar = this.add
+      .rectangle(
+        -this.UiDim.barWidth / 2,
+        windowCenterY,
+        this.UiDim.barWidth,
+        this.getCurrentGameHeight(),
+        0x774b2a,
+        1
+      )
+      .setDepth(10);
+
+    this.rightBar = this.add
+      .rectangle(
+        this.getCurrentGameWidth() + this.UiDim.barWidth / 2,
+        windowCenterY,
+        this.UiDim.barWidth,
+        this.getCurrentGameHeight(),
         0x774b2a,
         1
       )
@@ -47,86 +86,53 @@ export class PauseScene extends Phaser.Scene {
       .rectangle(
         windowCenterX,
         -this.UiDim.barHeight + this.UiDim.lineThickness / 2,
-        this.getCurrentGameWidth() - 180,
+        this.getCurrentGameWidth() - this.UiDim.linePaddingX,
         this.UiDim.lineThickness,
         0x000000,
         1
       )
-      .setDepth(11);
-    this.topBarInnerLine.setOrigin(0.5, 0);
-    this.topBarInnerLine.setVisible(false);
-
-    this.bottomBar = this.add
-      .rectangle(
-        windowCenterX,
-        gameHeight + this.UiDim.barHeight / 2,
-        gameWidth,
-        this.UiDim.barHeight,
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
+      .setDepth(11)
+      .setOrigin(0.5, 0)
+      .setVisible(false);
 
     this.bottomBarInnerLine = this.add
       .rectangle(
         windowCenterX,
-        gameHeight + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2,
-        gameWidth,
+        this.getCurrentGameHeight() + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2,
+        this.getCurrentGameWidth() - this.UiDim.linePaddingX,
         this.UiDim.lineThickness,
         0x000000,
         1
       )
-      .setDepth(11);
-    this.bottomBarInnerLine.setOrigin(0.5, 1);
-    this.bottomBarInnerLine.setVisible(false);
-
-    this.leftBar = this.add
-      .rectangle(
-        -this.UiDim.barWidth / 2,
-        windowCenterY,
-        this.UiDim.barWidth,
-        gameHeight,
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
+      .setDepth(11)
+      .setOrigin(0.5, 1)
+      .setVisible(false);
 
     this.leftBarInnerLine = this.add
       .rectangle(
         -this.UiDim.barWidth + this.UiDim.lineThickness / 2,
         windowCenterY,
         this.UiDim.lineThickness,
-        gameHeight,
+        this.getCurrentGameHeight() + this.UiDim.linePaddingY,
         0x000000,
         1
       )
-      .setDepth(11);
-    this.leftBarInnerLine.setOrigin(0, 0.5);
-    this.leftBarInnerLine.setVisible(false);
-
-    this.rightBar = this.add
-      .rectangle(
-        gameWidth + this.UiDim.barWidth / 2,
-        windowCenterY,
-        this.UiDim.barWidth,
-        gameHeight,
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
+      .setDepth(11)
+      .setOrigin(0, 0.5)
+      .setVisible(false);
 
     this.rightBarInnerLine = this.add
       .rectangle(
-        gameWidth + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2,
+        this.getCurrentGameWidth() + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2,
         windowCenterY,
         this.UiDim.lineThickness,
-        gameHeight,
+        this.getCurrentGameHeight() + this.UiDim.linePaddingY,
         0x000000,
         1
       )
-      .setDepth(11);
-    this.rightBarInnerLine.setOrigin(1, 0.5);
-    this.rightBarInnerLine.setVisible(false);
+      .setDepth(11)
+      .setOrigin(1, 0.5)
+      .setVisible(false);
 
     const panel = this.add.graphics();
     panel.fillStyle(0x000000, 0.6);
@@ -155,8 +161,6 @@ export class PauseScene extends Phaser.Scene {
       }
     });
 
-    this.uiContainer.add(resumeBtn);
-
     const settingsBtn = this.add
       .text(0, 0, "Settings", {
         fontSize: "32px",
@@ -174,15 +178,12 @@ export class PauseScene extends Phaser.Scene {
       this.scene.launch("SettingScene", { from: "PauseScene" });
     });
 
+    this.uiContainer.add(resumeBtn);
     this.uiContainer.add(settingsBtn);
     this.uiContainer.setScale(0);
     this.uiContainer.setAlpha(0);
     this.uiContainer.setDepth(4);
     this.uiContainer.setVisible(false);
-
-    this.keys = this.input.keyboard.addKeys({
-      Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
-    });
     this.showUIPanel();
   }
 
@@ -215,7 +216,7 @@ export class PauseScene extends Phaser.Scene {
     const leftBarLineTargetX =
       leftBarTargetX + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
 
-    const rightBarTargetX = gameWidth - 90 + this.UiDim.barWidth / 2;
+    const rightBarTargetX = this.getCurrentGameWidth() - 90 + this.UiDim.barWidth / 2;
     const rightBarLineTargetX =
       rightBarTargetX - this.UiDim.barWidth / 2 + this.UiDim.lineThickness / 2;
 
