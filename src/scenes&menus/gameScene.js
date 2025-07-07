@@ -4,8 +4,8 @@ import { Enemy } from "../enemy.js";
 import {
   gameWidth,
   gameHeight,
-  innerRoomCenterX,
-  innerRoomCenterY,
+  windowCenterX,
+  windowCenterY,
   rmProps,
 } from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
@@ -18,8 +18,8 @@ const rmDim = {
   innerRoomHeight: gameHeight - roomPaddingHeight,
   roomOffsetX: roomPaddingWidth / 2,
   roomOffsetY: roomPaddingHeight / 2,
-  doorWidth: innerRoomCenterX - doorPaddingWidth,
-  doorHeight: innerRoomCenterY - doorPaddingHeight,
+  doorWidth: windowCenterX - doorPaddingWidth,
+  doorHeight: windowCenterY - doorPaddingHeight,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -43,8 +43,8 @@ export class GameScene extends Phaser.Scene {
         right: "room2",
       },
       playerSpawnPoints: {
-        right: { x: gameWidth - rmProps.leftRightOffset, y: innerRoomCenterY },
-        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
+        right: { x: gameWidth - rmProps.leftRightOffset, y: windowCenterY },
+        default: { x: windowCenterX, y: windowCenterY + 50 },
       },
       enemies: [
         {
@@ -64,7 +64,7 @@ export class GameScene extends Phaser.Scene {
           health: 50,
         },
       ],
-      weapons: [{ id: "sword", damage: 15, Cooldown: 100 }],
+      weapons: [{ x: 200, y: 200, id: "sword", damage: 15, Cooldown: 100, pickedUp: false }],
       items: [],
     },
 
@@ -75,11 +75,20 @@ export class GameScene extends Phaser.Scene {
         up: "room3",
       },
       playerSpawnPoints: {
-        left: { x: rmProps.leftRightOffset, y: innerRoomCenterY },
-        up: { x: innerRoomCenterX, y: rmProps.topBottomOffset },
-        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
+        left: { x: rmProps.leftRightOffset, y: windowCenterY },
+        up: { x: windowCenterX, y: rmProps.topBottomOffset },
+        default: { x: windowCenterX, y: windowCenterY + 50 },
       },
-      enemies: [{ id: "chaser_03", xOffset: 200, yOffset: 50, speed: 100, damage: 15, health: 50 }],
+      enemies: [
+        {
+          id: "chaser_03",
+          xOffset: 200,
+          yOffset: 50,
+          speed: 100,
+          damage: 15,
+          health: 50,
+        },
+      ],
       weapons: [],
       items: [],
     },
@@ -91,10 +100,10 @@ export class GameScene extends Phaser.Scene {
       },
       playerSpawnPoints: {
         down: {
-          x: innerRoomCenterX,
+          x: windowCenterX,
           y: gameHeight - rmProps.topBottomOffset,
         },
-        default: { x: innerRoomCenterX, y: innerRoomCenterY + 50 },
+        default: { x: windowCenterX, y: windowCenterY + 50 },
       },
       enemies: [],
       weapons: [],
@@ -123,7 +132,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.escText = this.add
-      .text(innerRoomCenterX, innerRoomCenterY + 450, "Press Esc to pause the game", {
+      .text(windowCenterX, windowCenterY + 450, "Press Esc to pause the game", {
         font: "16px Arial",
         fill: "rgba(0, 0, 0, 0.4)",
       })
@@ -245,8 +254,8 @@ export class GameScene extends Phaser.Scene {
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
-        x: innerRoomCenterX,
-        y: innerRoomCenterY,
+        x: windowCenterX,
+        y: windowCenterY,
       };
     }
 
@@ -275,24 +284,25 @@ export class GameScene extends Phaser.Scene {
       rmDim.innerRoomHeight
     );
 
-    // If the current room contains any defined weapons, iterate through them,
-    // validate their presence, determine their spawn positions (defaulting to center if not specified)
-    // and instantiate each weapon into the scene
     if (roomData.weapons && roomData.weapons.length > 0) {
       roomData.weapons.forEach((weaponDef) => {
-        const weaponPosX = weaponDef.weaponSpawnPointX || innerRoomCenterX;
-        const weaponPosY = weaponDef.weaponSpawnPointY || innerRoomCenterY;
-        const newWeapon = new Weapons(
-          this,
-          weaponPosX,
-          weaponPosY,
-          "PlaceHolder",
-          null,
-          weaponDef.id,
-          weaponDef.damage,
-          weaponDef.Cooldown
-        );
-        this.weaponGroup.add(newWeapon);
+        if (!weaponDef.pickedUp) {
+          console.log(weaponDef.pickedUp);
+          const weaponPosX = weaponDef.x || windowCenterX;
+          const weaponPosY = weaponDef.y || windowCenterY;
+          const newWeapon = new Weapons(
+            this,
+            weaponPosX,
+            weaponPosY,
+            "sword",
+            null,
+            weaponDef.id,
+            weaponDef.damage,
+            weaponDef.Cooldown
+          );
+          newWeapon.setScale(0.15);
+          this.weaponGroup.add(newWeapon);
+        }
       });
     }
 
@@ -436,11 +446,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   onPlayerPickUpWeapon(player, weapon) {
-    player.inventory.push({ id: weapon.id, damage: weapon.damage, Cooldown: weapon.Cooldown });
-    // place the weapon at the players hip
-    // When leaving a room and re entering the texture of the previous weapon still remains - fix this
+    player.inventory.push({
+      id: weapon.id,
+      damage: weapon.damage,
+      Cooldown: weapon.Cooldown,
+    });
+
+    const currentRoomData = this.rooms[this.currentRoomKey];
+    if (currentRoomData && currentRoomData.weapons) {
+      const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
+      if (pickedUpWeaponDef) {
+        pickedUpWeaponDef.pickedUp = true;
+        console.log(
+          `Weapon ${weapon.id} in ${this.currentRoomKey} permanently marked as picked up.`
+        );
+      }
+    }
+
     if (player.inventory.length > 0) {
-      console.log("Picked up weapon:", weapon.id, weapon.damage, weapon.Cooldown);
+      console.log(`Picked up ${weapon.id}:`, weapon.damage, weapon.Cooldown);
       weapon.destroy();
     }
   }

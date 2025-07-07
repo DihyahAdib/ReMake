@@ -3,15 +3,16 @@ Ill probably go for a rogue like or a loot-escape type game or maybe exploring l
 Game Version - 0.015v
 # Whats next?
 
-> Adding quick settings to the pause menu
-> Adding more rooms
-> Refining the tutorial Scene (mechanics/teaching)
-> Refining the main menu (styling)
-> Creating real background assets for the room bg's
-> Movement mechanics & gist of the game
-> ive added weapons but right now there just a husk - give weapons abilities
-> add restart button to pause menu for testing reasons, add a real reset game button later ( REMOVES ALL SAVED STATS )
-> add saves ( file system ) 
+- Adding quick settings to the pause menu
+- Adding more rooms
+- Refining the tutorial Scene (mechanics/teaching)
+- Refining the main menu (styling)
+- Creating real background assets for the room bg's
+- Movement mechanics & gist of the game
+- ive added weapons but right now there just a husk - give weapons abilities
+- add restart button to pause menu for testing reasons, add a real reset game button later ( REMOVES ALL SAVED STATS )
+- add saves ( file system ) 
+
 
 # Patche Notes
 
@@ -19,4 +20,5 @@ Game Version - 0.015v
 
 # Next fixes?
 
-> hitboxes should be slightly outside playable area boundaries as to not allow player to get cliped onto it (i.e setBounds)
+- hitboxes should be slightly outside playable area boundaries as to not allow player to get cliped onto it (i.e setBounds)
+- REPLACE ALL STAGNANT GAMEWIDTHS WITH THE CURRENT NEW FUNCTIONS this.getCurrentGameWidth() ETC

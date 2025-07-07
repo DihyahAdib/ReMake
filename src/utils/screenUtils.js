@@ -1,28 +1,30 @@
 //screenUtils.js
 
+// Global Variables
+
 /**
- * The width of the current game screen, retrieved from the Electron screen API.
- * @type {number}
+ * Returns the initial width of the user's game screen (from Electron API).
+ * @returns {number}
  */
 export const gameWidth = window.myUniqueElectronAPI.screenSize.width;
 
 /**
- * The height of the current game screen, retrieved from the Electron screen API.
- * @type {number}
+ * Returns the initial height of the user's game screen (from Electron API).
+ * @returns {number}
  */
 export const gameHeight = window.myUniqueElectronAPI.screenSize.height;
 
 /**
- *  The center of the playable area (X axis)
- * @type {number}
+ * Returns the center X position of the initial window area.
+ * @returns {number}
  */
-export const innerRoomCenterX = gameWidth / 2;
+export const windowCenterX = gameWidth / 2;
 
 /**
- *  The center of the playable area (Y axis)
- * @type {number}
+ * Returns the center Y position of the initial window area.
+ * @returns {number}
  */
-export const innerRoomCenterY = gameHeight / 2;
+export const windowCenterY = gameHeight / 2;
 
 /**
  * @typedef {Object} RoomProperties
