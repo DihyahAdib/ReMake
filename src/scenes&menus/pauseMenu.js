@@ -5,8 +5,8 @@ export class PauseScene extends Phaser.Scene {
   UiDim = {
     panelWidth: 700,
     panelHeight: 900,
-    barWidth: 200,
-    barHeight: 140,
+    barWidth: 90,
+    barHeight: 150,
     lineThickness: 8,
   };
 
@@ -32,7 +32,6 @@ export class PauseScene extends Phaser.Scene {
       .setDepth(0)
       .setVisible(false);
 
-    // Top Bar
     this.topBar = this.add
       .rectangle(
         windowCenterX,
@@ -48,7 +47,7 @@ export class PauseScene extends Phaser.Scene {
       .rectangle(
         windowCenterX,
         -this.UiDim.barHeight + this.UiDim.lineThickness / 2,
-        gameWidth,
+        this.getCurrentGameWidth() - 180,
         this.UiDim.lineThickness,
         0x000000,
         1
@@ -57,7 +56,6 @@ export class PauseScene extends Phaser.Scene {
     this.topBarInnerLine.setOrigin(0.5, 0);
     this.topBarInnerLine.setVisible(false);
 
-    // Bottom Bar
     this.bottomBar = this.add
       .rectangle(
         windowCenterX,
@@ -82,7 +80,6 @@ export class PauseScene extends Phaser.Scene {
     this.bottomBarInnerLine.setOrigin(0.5, 1);
     this.bottomBarInnerLine.setVisible(false);
 
-    // Left Bar
     this.leftBar = this.add
       .rectangle(
         -this.UiDim.barWidth / 2,
@@ -107,7 +104,6 @@ export class PauseScene extends Phaser.Scene {
     this.leftBarInnerLine.setOrigin(0, 0.5);
     this.leftBarInnerLine.setVisible(false);
 
-    // Right Bar
     this.rightBar = this.add
       .rectangle(
         gameWidth + this.UiDim.barWidth / 2,
@@ -208,7 +204,6 @@ export class PauseScene extends Phaser.Scene {
     this.leftBarInnerLine.setVisible(true);
     this.rightBarInnerLine.setVisible(true);
 
-    // Animate top bar in
     const topBarTargetY = this.UiDim.barHeight / 2;
     const bottomBarTargetY = this.getCurrentGameHeight() - this.UiDim.barHeight / 2;
 
@@ -230,7 +225,7 @@ export class PauseScene extends Phaser.Scene {
       ease: "Cubic.Out",
       duration: 400,
     });
-    // Animate top bar inner line
+
     this.tweens.add({
       targets: this.topBarInnerLine,
       y: topBarLineTargetY,
@@ -238,7 +233,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate bottom bar in
     this.tweens.add({
       targets: this.bottomBar,
       y: bottomBarTargetY,
@@ -246,7 +240,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 400,
     });
 
-    // Animate bottom bar inner line
     this.tweens.add({
       targets: this.bottomBarInnerLine,
       y: bottomBarLineTargetY,
@@ -254,7 +247,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate left bar in
     this.tweens.add({
       targets: this.leftBar,
       x: leftBarTargetX,
@@ -262,7 +254,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 400,
     });
 
-    // Animate left bar inner line
     this.tweens.add({
       targets: this.leftBarInnerLine,
       x: leftBarLineTargetX,
@@ -270,7 +261,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate right bar in
     this.tweens.add({
       targets: this.rightBar,
       x: rightBarTargetX,
@@ -278,7 +268,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 400,
     });
 
-    // Animate right bar inner line
     this.tweens.add({
       targets: this.rightBarInnerLine,
       x: rightBarLineTargetX,
@@ -322,14 +311,13 @@ export class PauseScene extends Phaser.Scene {
     const rightBarLineHideX =
       this.getCurrentGameWidth() + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
 
-    // Animate top bar out
     this.tweens.add({
       targets: this.topBar,
       y: topBarHideY,
       ease: "Cubic.In",
       duration: 300,
     });
-    // Animate top bar inner line out
+
     this.tweens.add({
       targets: this.topBarInnerLine,
       y: topBarLineHideY,
@@ -337,7 +325,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate bottom bar out
     this.tweens.add({
       targets: this.bottomBar,
       y: bottomBarHideY,
@@ -345,7 +332,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate bottom bar inner line out
     this.tweens.add({
       targets: this.bottomBarInnerLine,
       y: bottomBarLineHideY,
@@ -353,14 +339,13 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate left bar out
     this.tweens.add({
       targets: this.leftBar,
       x: leftBarHideX,
       ease: "Cubic.In",
       duration: 300,
     });
-    // Animate left bar inner line out
+
     this.tweens.add({
       targets: this.leftBarInnerLine,
       x: leftBarLineHideX,
@@ -368,7 +353,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate right bar out
     this.tweens.add({
       targets: this.rightBar,
       x: rightBarHideX,
@@ -376,7 +360,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
 
-    // Animate right bar inner line out
     this.tweens.add({
       targets: this.rightBarInnerLine,
       x: rightBarLineHideX,
