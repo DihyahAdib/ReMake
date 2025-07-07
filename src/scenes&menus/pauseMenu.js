@@ -1,5 +1,5 @@
 //pauseMenu.js
-import { gameHeight, gameWidth } from "../utils/screenUtils.js";
+import { gameHeight, gameWidth, windowCenterX, windowCenterY } from "../utils/screenUtils.js";
 
 export class PauseScene extends Phaser.Scene {
   UiDim = {
@@ -35,19 +35,18 @@ export class PauseScene extends Phaser.Scene {
     // Top Bar
     this.topBar = this.add
       .rectangle(
-        this.getCurrentGameCenterY(),
+        windowCenterX,
         -this.UiDim.barHeight / 2,
-        this.getCurrentGameWidth(),
+        gameWidth,
         this.UiDim.barHeight,
         0x774b2a,
         1
       )
       .setDepth(10);
 
-    // REPLACE ALL STAGNANT GAMEWIDTHS WITH THE CURRENT NEW FUNCTIONS this.getCurrentGameWidth() ETC.
     this.topBarInnerLine = this.add
       .rectangle(
-        gameWidth / 2,
+        windowCenterX,
         -this.UiDim.barHeight + this.UiDim.lineThickness / 2,
         gameWidth,
         this.UiDim.lineThickness,
@@ -61,7 +60,7 @@ export class PauseScene extends Phaser.Scene {
     // Bottom Bar
     this.bottomBar = this.add
       .rectangle(
-        gameWidth / 2,
+        windowCenterX,
         gameHeight + this.UiDim.barHeight / 2,
         gameWidth,
         this.UiDim.barHeight,
@@ -72,7 +71,7 @@ export class PauseScene extends Phaser.Scene {
 
     this.bottomBarInnerLine = this.add
       .rectangle(
-        gameWidth / 2,
+        windowCenterX,
         gameHeight + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2,
         gameWidth,
         this.UiDim.lineThickness,
@@ -87,7 +86,7 @@ export class PauseScene extends Phaser.Scene {
     this.leftBar = this.add
       .rectangle(
         -this.UiDim.barWidth / 2,
-        gameHeight / 2,
+        windowCenterY,
         this.UiDim.barWidth,
         gameHeight,
         0x774b2a,
@@ -98,7 +97,7 @@ export class PauseScene extends Phaser.Scene {
     this.leftBarInnerLine = this.add
       .rectangle(
         -this.UiDim.barWidth + this.UiDim.lineThickness / 2,
-        gameHeight / 2,
+        windowCenterY,
         this.UiDim.lineThickness,
         gameHeight,
         0x000000,
@@ -112,7 +111,7 @@ export class PauseScene extends Phaser.Scene {
     this.rightBar = this.add
       .rectangle(
         gameWidth + this.UiDim.barWidth / 2,
-        gameHeight / 2,
+        windowCenterY,
         this.UiDim.barWidth,
         gameHeight,
         0x774b2a,
@@ -123,7 +122,7 @@ export class PauseScene extends Phaser.Scene {
     this.rightBarInnerLine = this.add
       .rectangle(
         gameWidth + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2,
-        gameHeight / 2,
+        windowCenterY,
         this.UiDim.lineThickness,
         gameHeight,
         0x000000,
@@ -137,7 +136,7 @@ export class PauseScene extends Phaser.Scene {
     panel.fillStyle(0x000000, 0.6);
     panel.fillRect(0, 0, this.UiDim.panelWidth, this.UiDim.panelHeight);
 
-    this.uiContainer = this.add.container(gameWidth / 2, gameHeight / 2);
+    this.uiContainer = this.add.container(windowCenterX, windowCenterY);
     this.uiContainer.add(panel);
 
     panel.setPosition(-this.UiDim.panelWidth / 2, -this.UiDim.panelHeight / 2);
@@ -179,10 +178,7 @@ export class PauseScene extends Phaser.Scene {
       this.scene.launch("SettingScene", { from: "PauseScene" });
     });
 
-    // const restartBtn = this.add.text(0, 0, "Restart", {})
-
     this.uiContainer.add(settingsBtn);
-
     this.uiContainer.setScale(0);
     this.uiContainer.setAlpha(0);
     this.uiContainer.setDepth(4);
@@ -214,10 +210,19 @@ export class PauseScene extends Phaser.Scene {
 
     // Animate top bar in
     const topBarTargetY = this.UiDim.barHeight / 2;
-    const bottomBarTargetY = gameHeight - this.UiDim.barHeight / 2;
+    const bottomBarTargetY = this.getCurrentGameHeight() - this.UiDim.barHeight / 2;
 
     const topBarLineTargetY = this.UiDim.barHeight - this.UiDim.lineThickness / 2;
-    const bottomBarLineTargetY = gameHeight - this.UiDim.barHeight + this.UiDim.lineThickness / 2;
+    const bottomBarLineTargetY =
+      this.getCurrentGameHeight() - this.UiDim.barHeight + this.UiDim.lineThickness / 2;
+
+    const leftBarTargetX = 90 - this.UiDim.barWidth / 2;
+    const leftBarLineTargetX =
+      leftBarTargetX + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
+
+    const rightBarTargetX = gameWidth - 90 + this.UiDim.barWidth / 2;
+    const rightBarLineTargetX =
+      rightBarTargetX - this.UiDim.barWidth / 2 + this.UiDim.lineThickness / 2;
 
     this.tweens.add({
       targets: this.topBar,
@@ -250,16 +255,14 @@ export class PauseScene extends Phaser.Scene {
     });
 
     // Animate left bar in
-    const leftBarTargetX = 90 - this.UiDim.barWidth / 2;
     this.tweens.add({
       targets: this.leftBar,
       x: leftBarTargetX,
       ease: "Cubic.Out",
       duration: 400,
     });
+
     // Animate left bar inner line
-    const leftBarLineTargetX =
-      leftBarTargetX + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.leftBarInnerLine,
       x: leftBarLineTargetX,
@@ -268,16 +271,14 @@ export class PauseScene extends Phaser.Scene {
     });
 
     // Animate right bar in
-    const rightBarTargetX = gameWidth - 90 + this.UiDim.barWidth / 2;
     this.tweens.add({
       targets: this.rightBar,
       x: rightBarTargetX,
       ease: "Cubic.Out",
       duration: 400,
     });
+
     // Animate right bar inner line
-    const rightBarLineTargetX =
-      rightBarTargetX - this.UiDim.barWidth / 2 + this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.rightBarInnerLine,
       x: rightBarLineTargetX,
@@ -307,8 +308,21 @@ export class PauseScene extends Phaser.Scene {
   hideUIPanel() {
     this.canAccessPauseMenu = false;
 
-    // Animate top bar out
     const topBarHideY = -this.UiDim.barHeight / 2;
+    const topBarLineHideY = -this.UiDim.barHeight + this.UiDim.lineThickness / 2;
+
+    const bottomBarHideY = this.getCurrentGameHeight() + this.UiDim.barHeight / 2;
+    const bottomBarLineHideY =
+      this.getCurrentGameHeight() + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2;
+
+    const leftBarHideX = -this.UiDim.barWidth / 2;
+    const leftBarLineHideX = -this.UiDim.barWidth + this.UiDim.lineThickness / 2;
+
+    const rightBarHideX = this.getCurrentGameWidth() + this.UiDim.barWidth / 2;
+    const rightBarLineHideX =
+      this.getCurrentGameWidth() + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
+
+    // Animate top bar out
     this.tweens.add({
       targets: this.topBar,
       y: topBarHideY,
@@ -316,7 +330,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
     // Animate top bar inner line out
-    const topBarLineHideY = -this.UiDim.barHeight + this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.topBarInnerLine,
       y: topBarLineHideY,
@@ -325,15 +338,14 @@ export class PauseScene extends Phaser.Scene {
     });
 
     // Animate bottom bar out
-    const bottomBarHideY = gameHeight + this.UiDim.barHeight / 2;
     this.tweens.add({
       targets: this.bottomBar,
       y: bottomBarHideY,
       ease: "Cubic.In",
       duration: 300,
     });
+
     // Animate bottom bar inner line out
-    const bottomBarLineHideY = gameHeight + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.bottomBarInnerLine,
       y: bottomBarLineHideY,
@@ -342,7 +354,6 @@ export class PauseScene extends Phaser.Scene {
     });
 
     // Animate left bar out
-    const leftBarHideX = -this.UiDim.barWidth / 2;
     this.tweens.add({
       targets: this.leftBar,
       x: leftBarHideX,
@@ -350,7 +361,6 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
     });
     // Animate left bar inner line out
-    const leftBarLineHideX = -this.UiDim.barWidth + this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.leftBarInnerLine,
       x: leftBarLineHideX,
@@ -359,15 +369,14 @@ export class PauseScene extends Phaser.Scene {
     });
 
     // Animate right bar out
-    const rightBarHideX = gameWidth + this.UiDim.barWidth / 2;
     this.tweens.add({
       targets: this.rightBar,
       x: rightBarHideX,
       ease: "Cubic.In",
       duration: 300,
     });
+
     // Animate right bar inner line out
-    const rightBarLineHideX = gameWidth + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
     this.tweens.add({
       targets: this.rightBarInnerLine,
       x: rightBarLineHideX,
