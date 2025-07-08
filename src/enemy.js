@@ -13,6 +13,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.health = health;
 
     this.isDead = false;
+    this.canTakeDamage = true;
 
     this.setCollideWorldBounds(true);
     this.body.setDrag(50);
@@ -26,6 +27,25 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   update(time, delta) {
     if (this.isDead) return;
     this.move();
+  }
+
+  takeDamage(amount) {
+    if (!this.canTakeDamage || this.isDead) {
+      this.health -= amount;
+      console.log(`Enemy ${this.health}`);
+      if (this.health <= 0) {
+        this.health = 0;
+        this.die();
+      }
+    }
+    this.canTakeDamage = false;
+  }
+
+  die() {
+    this.isDead = true;
+    this.body.setVelocity(0, 0);
+    this.disableBody(true, true);
+    this.destroy();
   }
 
   move() {

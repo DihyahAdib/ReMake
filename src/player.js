@@ -44,6 +44,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
+
+    this.currentScene.input.on("pointerdown", () => {
+      if (this.equippedWeapon) {
+        this.equippedWeapon.shoot(this.x, this.y, this.currentScene.input.activePointer);
+      }
+    });
   }
 
   update(time, delta) {
@@ -68,14 +74,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.setVelocity(moveX * this.speed, moveY * this.speed);
-  }
-
-  dealDamage(enemy, amount) {
-    if (!this.canDealDamage || this.isDead) return;
-    if (!enemy || enemy.isDead) return;
-
-    this.currentScene.enemy.health -= amount;
-    console.log(`Enemy Health: ${this.enemy.health}`);
   }
 
   takeDamage(amount) {

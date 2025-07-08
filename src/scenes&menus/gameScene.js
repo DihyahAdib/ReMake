@@ -53,7 +53,7 @@ export class GameScene extends Phaser.Scene {
           yOffset: -100,
           speed: 100,
           damage: 10,
-          health: 50,
+          health: 100,
         },
         {
           id: "chaser_02",
@@ -61,11 +61,23 @@ export class GameScene extends Phaser.Scene {
           yOffset: 50,
           speed: 100,
           damage: 10,
-          health: 50,
+          health: 100,
         },
       ],
+      //DYNAMICALLY ADD ENEMIES HERE.
+      //REMOVE ENEMIES ^
+
+      addEnemies() {},
       weapons: [
-        { x: 200, y: 200, id: "Basic Shooter", damage: 15, Cooldown: 100, pickedUp: false },
+        {
+          x: 200,
+          y: 200,
+          id: "Basic Shooter",
+          damage: 15,
+          cooldown: 100,
+          speed: 400,
+          pickedUp: false,
+        },
       ],
       items: [],
     },
@@ -88,7 +100,7 @@ export class GameScene extends Phaser.Scene {
           yOffset: 50,
           speed: 100,
           damage: 15,
-          health: 50,
+          health: 100,
         },
       ],
       weapons: [],
@@ -153,7 +165,6 @@ export class GameScene extends Phaser.Scene {
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
 
-    // Load the initial room
     this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
     this.handleItemPickUp();
@@ -217,8 +228,6 @@ export class GameScene extends Phaser.Scene {
     this.enemyGroup = this.physics.add.group();
 
     const roomData = this.rooms[roomKey];
-
-    // Error handling
     if (!roomData) {
       console.error(`Room data not found for key: ${roomKey}`);
       return;
@@ -305,7 +314,8 @@ export class GameScene extends Phaser.Scene {
             null,
             weaponDef.id,
             weaponDef.damage,
-            weaponDef.Cooldown
+            weaponDef.cooldown,
+            weaponDef.speed
           );
           newWeapon.setScale(0.15);
           this.weaponGroup.add(newWeapon);
@@ -456,7 +466,8 @@ export class GameScene extends Phaser.Scene {
     player.inventory.push({
       id: weapon.id,
       damage: weapon.damage,
-      Cooldown: weapon.Cooldown,
+      cooldown: weapon.cooldown,
+      speed: weapon.speed,
     });
 
     this.weaponGroup.remove(weapon, false, false);
@@ -480,6 +491,13 @@ export class GameScene extends Phaser.Scene {
     if (this.player && this.player.equippedWeapon) {
       this.player.equippedWeapon.x = this.player.x;
       this.player.equippedWeapon.y = this.player.y;
+    }
+
+    if (weapon.projectileGroup && this.enemyGroup) {
+      this.physics.add.overlap(weapon.projectileGroup, this.enemyGroup, (projectile, enemy) => {
+        enemy.takeDamage(weapon.damage);
+        projectile.destroy();
+      });
     }
   }
 }
