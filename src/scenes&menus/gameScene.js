@@ -64,7 +64,9 @@ export class GameScene extends Phaser.Scene {
           health: 50,
         },
       ],
-      weapons: [{ x: 200, y: 200, id: "sword", damage: 15, Cooldown: 100, pickedUp: false }],
+      weapons: [
+        { x: 200, y: 200, id: "Basic Shooter", damage: 15, Cooldown: 100, pickedUp: false },
+      ],
       items: [],
     },
 
@@ -118,7 +120,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
-    this.load.image("sword", "assets/sword.png");
+    this.load.image("basicShooter", "assets/sword.png");
     this.load.image("R1_bg", "assets/room1_background.png");
     this.load.image("R2_bg", "assets/room2_background.png");
     this.load.image("door_trigger", "assets/door.png");
@@ -176,6 +178,11 @@ export class GameScene extends Phaser.Scene {
       const nameTagYOffset = this.player.displayHeight / 2 + 10;
       this.playerNameTag.x = this.player.x;
       this.playerNameTag.y = this.player.y - nameTagYOffset;
+
+      if (this.player.equippedWeapon) {
+        this.player.equippedWeapon.x = this.player.x;
+        this.player.equippedWeapon.y = this.player.y;
+      }
     }
 
     if (this.enemyGroup) {
@@ -294,7 +301,7 @@ export class GameScene extends Phaser.Scene {
             this,
             weaponPosX,
             weaponPosY,
-            "sword",
+            "basicShooter",
             null,
             weaponDef.id,
             weaponDef.damage,
@@ -452,6 +459,8 @@ export class GameScene extends Phaser.Scene {
       Cooldown: weapon.Cooldown,
     });
 
+    this.weaponGroup.remove(weapon, false, false);
+
     const currentRoomData = this.rooms[this.currentRoomKey];
     if (currentRoomData && currentRoomData.weapons) {
       const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
@@ -463,9 +472,14 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (player.inventory.length > 0) {
-      console.log(`Picked up ${weapon.id}:`, weapon.damage, weapon.Cooldown);
-      weapon.destroy();
+    weapon.x = player.x;
+    weapon.y = player.y;
+    weapon.setDepth(10);
+    player.equippedWeapon = weapon;
+
+    if (this.player && this.player.equippedWeapon) {
+      this.player.equippedWeapon.x = this.player.x;
+      this.player.equippedWeapon.y = this.player.y;
     }
   }
 }
