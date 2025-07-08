@@ -35,7 +35,7 @@ export class GameScene extends Phaser.Scene {
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
-
+  // figure out how to make a function for this entire room instead of adding them stagnant, dont hardcode
   rooms = {
     StartingRoom: {
       background: "R1_bg",
@@ -74,7 +74,7 @@ export class GameScene extends Phaser.Scene {
           y: 200,
           id: "Basic Shooter",
           damage: 15,
-          cooldown: 100,
+          cooldown: 500,
           speed: 400,
           pickedUp: false,
         },

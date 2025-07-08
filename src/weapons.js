@@ -38,7 +38,7 @@ export class Weapons extends Phaser.GameObjects.Sprite {
     projectile.body.setVelocity(velocity.x, velocity.y);
     projectile.body.setCollideWorldBounds(true);
     projectile.body.onWorldBounds = true;
-
+    // ADD A FUCKING COOLDOWN
     projectile.body.world.on("worldbounds", (body) => {
       if (body.gameObject === projectile) {
         projectile.destroy();
