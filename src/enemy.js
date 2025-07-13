@@ -1,7 +1,7 @@
 //enemy.js
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, frame, id, speed, damage, health) {
+  constructor(scene, x, y, texture, frame, id, speed, damage, health, death) {
     super(scene, x, y, texture, frame);
 
     scene.add.existing(this);
@@ -11,8 +11,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.speed = speed;
     this.damage = damage;
     this.health = health;
+    this.isDead = death;
 
-    this.isDead = false;
     this.canTakeDamage = true;
 
     this.setCollideWorldBounds(true);
@@ -22,6 +22,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.currentScene = scene;
     this.mobsSpeedIncreaseCount = 0;
+    this.enemyDefinition = null;
   }
 
   update(time, delta) {
@@ -30,22 +31,23 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   takeDamage(amount) {
-    if (!this.canTakeDamage || this.isDead) {
+    if (this.canTakeDamage && !this.isDead) {
       this.health -= amount;
       console.log(`Enemy ${this.health}`);
       if (this.health <= 0) {
         this.health = 0;
         this.die();
       }
+      this.canTakeDamage = false;
+      this.currentScene.time.delayedCall(
+        200,
+        () => {
+          this.canTakeDamage = true;
+        },
+        [],
+        this
+      );
     }
-    this.canTakeDamage = false;
-  }
-
-  die() {
-    this.isDead = true;
-    this.body.setVelocity(0, 0);
-    this.disableBody(true, true);
-    this.destroy();
   }
 
   move() {
@@ -72,5 +74,35 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.speed += 300;
       console.log(this.speed);
     }
+  }
+
+  die() {
+    this.isDead = true;
+    this.body.setVelocity(0, 0);
+    this.disableBody(true, true);
+    this.destroy();
+
+    // Corrected property name from this.enemyDef to this.enemyDefinition
+    if (this.enemyDefinition) {
+      this.enemyDefinition.isDead = true; // Mark the definition as dead
+      console.log(`Enemy ${this.id} marked as dead in room data.`);
+    }
+  }
+
+  static createEnemyFromDef(scene, enemyDef) {
+    const enemy = new Enemy(
+      scene,
+      scene.cameras.main.centerX + enemyDef.xOffset,
+      scene.cameras.main.centerY + enemyDef.yOffset,
+      "enemy",
+      null,
+      enemyDef.id,
+      enemyDef.speed,
+      enemyDef.damage,
+      enemyDef.health,
+      enemyDef.isDead
+    );
+    enemy.enemyDefinition = enemyDef;
+    return enemy;
   }
 }

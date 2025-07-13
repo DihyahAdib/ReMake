@@ -35,104 +35,133 @@ export class GameScene extends Phaser.Scene {
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
-  // figure out how to make a function for this entire room instead of adding them stagnant, dont hardcode
-  rooms = {
-    StartingRoom: {
-      background: "R1_bg",
-      connections: {
-        right: "room2",
-      },
-      playerSpawnPoints: {
-        right: { x: gameWidth - rmProps.leftRightOffset, y: windowCenterY },
-        default: { x: windowCenterX, y: windowCenterY + 50 },
-      },
-      enemies: [
-        {
-          id: "chaser_01",
-          xOffset: 100,
-          yOffset: -100,
-          speed: 100,
-          damage: 10,
-          health: 100,
-        },
-        {
-          id: "chaser_02",
-          xOffset: 200,
-          yOffset: 50,
-          speed: 100,
-          damage: 10,
-          health: 100,
-        },
-      ],
-      //DYNAMICALLY ADD ENEMIES HERE.
-      //REMOVE ENEMIES ^
 
-      addEnemies() {},
-      weapons: [
-        {
-          x: 200,
-          y: 200,
-          id: "Basic Shooter",
-          damage: 15,
-          cooldown: 500,
-          speed: 400,
-          pickedUp: false,
-        },
-      ],
-      items: [],
+  enemyStructs = [
+    {
+      id: "beginner mob",
+      xOffset: 200,
+      yOffset: -200,
+      speed: 100,
+      damage: 10,
+      health: 100,
+      isDead: false,
+      rmkey: "StartingRoom",
+    },
+    {
+      id: "intermediate mob",
+      xOffset: 200,
+      yOffset: 50,
+      speed: 150,
+      damage: 20,
+      health: 200,
+      isDead: false,
+      rmkey: "room2",
+    },
+  ];
+
+  weaponStructs = [
+    {
+      id: "Basic Shooter",
+      x: 200,
+      y: 200,
+      damage: 15,
+      cooldown: 500,
+      speed: 400,
+      pickedUp: false,
+      rmkey: "StartingRoom",
     },
 
-    room2: {
-      background: "R2_bg",
-      connections: {
-        left: "StartingRoom",
-        up: "room3",
-      },
-      playerSpawnPoints: {
-        left: { x: rmProps.leftRightOffset, y: windowCenterY },
-        up: { x: windowCenterX, y: rmProps.topBottomOffset },
-        default: { x: windowCenterX, y: windowCenterY + 50 },
-      },
-      enemies: [
-        {
-          id: "chaser_03",
-          xOffset: 200,
-          yOffset: 50,
-          speed: 100,
-          damage: 15,
-          health: 100,
-        },
-      ],
-      weapons: [],
-      items: [],
+    {
+      id: "Basic Shooter",
+      x: 200,
+      y: 200,
+      damage: 30,
+      cooldown: 350,
+      speed: 200,
+      pickedUp: false,
+      rmkey: "room3",
     },
+  ];
 
-    room3: {
-      background: "R2_bg",
-      connections: {
-        down: "room2",
-      },
-      playerSpawnPoints: {
-        down: {
-          x: windowCenterX,
-          y: gameHeight - rmProps.topBottomOffset,
-        },
-        default: { x: windowCenterX, y: windowCenterY + 50 },
-      },
-      enemies: [],
-      weapons: [],
-      items: [],
-    },
-  };
+  rooms = {};
 
   constructor() {
     super({ key: "GameScene" });
+    this.initializeRoomData();
+  }
+
+  initializeRoomData() {
+    this.rooms = {
+      StartingRoom: {
+        background: "R1_bg",
+        connections: {
+          right: "room2",
+        },
+        playerSpawnPoints: {
+          right: { x: gameWidth - rmProps.leftRightOffset, y: windowCenterY },
+          default: { x: windowCenterX, y: windowCenterY + 50 },
+        },
+        enemies: [],
+        weapons: [],
+        items: [],
+      },
+
+      room2: {
+        background: "R2_bg",
+        connections: {
+          left: "StartingRoom",
+          up: "room3",
+        },
+        playerSpawnPoints: {
+          left: { x: rmProps.leftRightOffset, y: windowCenterY },
+          up: { x: windowCenterX, y: rmProps.topBottomOffset },
+          default: { x: windowCenterX, y: windowCenterY + 50 },
+        },
+        enemies: [],
+        weapons: [],
+        items: [],
+      },
+
+      room3: {
+        background: "R2_bg",
+        connections: {
+          down: "room2",
+        },
+        playerSpawnPoints: {
+          down: {
+            x: windowCenterX,
+            y: gameHeight - rmProps.topBottomOffset,
+          },
+          default: { x: windowCenterX, y: windowCenterY + 50 },
+        },
+        enemies: [],
+        weapons: [],
+        items: [],
+      },
+    };
+    // also figure out how to dynamically add then to different spots in the room
+
+    for (const roomKey in this.rooms) {
+      const room = this.rooms[roomKey];
+
+      for (const enemyStruct of this.enemyStructs) {
+        if (enemyStruct.rmkey === roomKey) {
+          room.enemies.push({ ...enemyStruct });
+        }
+      }
+
+      for (const weaponStruct of this.weaponStructs) {
+        if (weaponStruct.rmkey === roomKey) {
+          room.weapons.push({ ...weaponStruct });
+        }
+      }
+    }
   }
 
   preload() {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
-    this.load.image("basicShooter", "assets/sword.png");
+    this.load.image("basicShooterImg", "assets/sword.png");
     this.load.image("R1_bg", "assets/room1_background.png");
     this.load.image("R2_bg", "assets/room2_background.png");
     this.load.image("door_trigger", "assets/door.png");
@@ -140,7 +169,7 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.fadeIn(400, 0, 0, 0);
-    // window.myGameScene = this;
+    window.myGameScene = this;
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
@@ -164,21 +193,23 @@ export class GameScene extends Phaser.Scene {
     this.weaponGroup = this.physics.add.group();
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
-
+    //remember to make some sort of function that sets this to a current room if a player leaves the game and rejoins. it should always start them in the beginning (currentRoomKey)
     this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
     this.handleItemPickUp();
 
-    this.playerHpText = this.add.text(128, 92, `HP: ${this.player.health}`, {
-      font: "16px Arial",
-      fill: "#ffffff",
-    });
-    this.playerHpText.setScrollFactor(0);
-    this.fpsText = this.add.text(128, 72, "FPS:", {
-      font: "16px Arial",
-      fill: "#ffffff",
-    });
-    this.fpsText.setScrollFactor(0);
+    this.playerHpText = this.add
+      .text(128, 92, `HP: ${this.player.health}`, {
+        font: "16px Arial",
+        fill: "#ffffff",
+      })
+      .setScrollFactor(0);
+    this.fpsText = this.add
+      .text(128, 72, "FPS:", {
+        font: "16px Arial",
+        fill: "#ffffff",
+      })
+      .setScrollFactor(0);
   }
 
   update(time, delta) {
@@ -213,26 +244,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   loadRoom(roomKey, entryDirection = null) {
-    console.log(`Loading room: ${roomKey}, Entry direction: ${entryDirection}`);
-
-    // Clear gameObjects first
     if (this.roomContentGroup) this.roomContentGroup.clear(true, true);
     if (this.doorGroup) this.doorGroup.clear(true, true);
     if (this.enemyGroup) this.enemyGroup.clear(true, true);
     if (this.weaponGroup) this.weaponGroup.clear(true, true);
 
-    // Add them back to the respective game groups
     this.roomContentGroup = this.add.group();
     this.weaponGroup = this.physics.add.group();
     this.doorGroup = this.physics.add.staticGroup();
     this.enemyGroup = this.physics.add.group();
 
     const roomData = this.rooms[roomKey];
-    if (!roomData) {
-      console.error(`Room data not found for key: ${roomKey}`);
-      return;
-    }
-
     this.currentRoomKey = roomKey;
 
     const bg = this.add
@@ -246,7 +268,6 @@ export class GameScene extends Phaser.Scene {
 
     this.roomContentGroup.add(bg);
 
-    // Set playable area
     this.physics.world.setBounds(
       rmDim.roomOffsetX,
       rmDim.roomOffsetY,
@@ -303,21 +324,8 @@ export class GameScene extends Phaser.Scene {
     if (roomData.weapons && roomData.weapons.length > 0) {
       roomData.weapons.forEach((weaponDef) => {
         if (!weaponDef.pickedUp) {
-          console.log(weaponDef.pickedUp);
-          const weaponPosX = weaponDef.x || windowCenterX;
-          const weaponPosY = weaponDef.y || windowCenterY;
-          const newWeapon = new Weapons(
-            this,
-            weaponPosX,
-            weaponPosY,
-            "basicShooter",
-            null,
-            weaponDef.id,
-            weaponDef.damage,
-            weaponDef.cooldown,
-            weaponDef.speed
-          );
-          newWeapon.setScale(0.15);
+          const newWeapon = Weapons.createWeaponFromDef(this, weaponDef);
+          newWeapon.weaponDefinition = weaponDef;
           this.weaponGroup.add(newWeapon);
         }
       });
@@ -325,20 +333,11 @@ export class GameScene extends Phaser.Scene {
 
     if (roomData.enemies && roomData.enemies.length > 0) {
       roomData.enemies.forEach((enemyDef) => {
-        const enemyX = this.cameras.main.centerX + enemyDef.xOffset;
-        const enemyY = this.cameras.main.centerY + enemyDef.yOffset;
-        const newEnemy = new Enemy(
-          this,
-          enemyX,
-          enemyY,
-          "enemy",
-          null,
-          enemyDef.id,
-          enemyDef.speed,
-          enemyDef.damage,
-          enemyDef.health
-        );
-        this.enemyGroup.add(newEnemy);
+        if (!enemyDef.isDead) {
+          const newEnemy = Enemy.createEnemyFromDef(this, enemyDef);
+          newEnemy.enemyDefinition = enemyDef;
+          this.enemyGroup.add(newEnemy);
+        }
       });
 
       this.physics.add.collider(
@@ -477,6 +476,10 @@ export class GameScene extends Phaser.Scene {
       const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
       if (pickedUpWeaponDef) {
         pickedUpWeaponDef.pickedUp = true;
+        const structDef = this.weaponStructs.find(
+          (def) => def.id === weapon.id && def.rmkey === this.currentRoomKey
+        );
+        if (structDef) structDef.pickedUp = true;
         console.log(
           `Weapon ${weapon.id} in ${this.currentRoomKey} permanently marked as picked up.`
         );
@@ -499,5 +502,21 @@ export class GameScene extends Phaser.Scene {
         projectile.destroy();
       });
     }
+  }
+
+  getCurrentGameWidth() {
+    return this.scale.width;
+  }
+
+  getCurrentGameHeight() {
+    return this.scale.height;
+  }
+
+  getCurrentGameCenterX() {
+    return this.getCurrentGameWidth() / 2;
+  }
+
+  getCurrentGameCenterY() {
+    return this.getCurrentGameHeight() / 2;
   }
 }

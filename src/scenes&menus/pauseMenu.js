@@ -402,32 +402,19 @@ export class PauseScene extends Phaser.Scene {
       ease: "Linear",
     });
   }
-  /**
-   * Returns the current game width (fullscreen or windowed) from a Phaser Scene.
-   * @returns {Phaser.Scene.scale.width}
-   */
+
   getCurrentGameWidth() {
     return this.scale.width;
   }
 
-  /**
-   * Returns the current game height (fullscreen or windowed) from a Phaser Scene.
-   * @returns {Phaser.Scene.scale.height}
-   */
   getCurrentGameHeight() {
     return this.scale.height;
   }
 
-  /**
-   * Returns the center of the X axis, of the current game area (fullscreen or windowed) from a Phaser Scene.
-   */
   getCurrentGameCenterX() {
     return this.getCurrentGameWidth() / 2;
   }
 
-  /**
-   * Returns the center of the Y axis, of the current game area (fullscreen or windowed) from a Phaser Scene.
-   */
   getCurrentGameCenterY() {
     return this.getCurrentGameHeight() / 2;
   }

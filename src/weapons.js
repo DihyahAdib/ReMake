@@ -27,7 +27,29 @@ export class Weapons extends Phaser.GameObjects.Sprite {
     this.projectileGroup = scene.physics.add.group();
   }
 
+  static createWeaponFromDef(scene, weaponDef) {
+    const weapon = new Weapons(
+      scene,
+      weaponDef.x || scene.getCurrentGameCenterX(),
+      weaponDef.y || scene.getCurrentGameCenterY(),
+      "basicShooterImg",
+      null,
+      weaponDef.id,
+      weaponDef.damage,
+      weaponDef.cooldown,
+      weaponDef.speed
+    );
+    weapon.setScale(0.15);
+    return weapon;
+  }
+
   shoot(originX, originY, pointer) {
+    if (this.isOnCooldown) return;
+    this.isOnCooldown = true;
+    this.currentScene.time.delayedCall(this.cooldown, () => {
+      this.isOnCooldown = false;
+    });
+
     const projectile = this.currentScene.add.circle(originX, originY, 5, 0xff0000);
     this.currentScene.physics.add.existing(projectile);
     this.projectileGroup.add(projectile);
@@ -38,7 +60,6 @@ export class Weapons extends Phaser.GameObjects.Sprite {
     projectile.body.setVelocity(velocity.x, velocity.y);
     projectile.body.setCollideWorldBounds(true);
     projectile.body.onWorldBounds = true;
-    // ADD A FUCKING COOLDOWN
     projectile.body.world.on("worldbounds", (body) => {
       if (body.gameObject === projectile) {
         projectile.destroy();
