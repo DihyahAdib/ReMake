@@ -81,10 +81,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.body.setVelocity(0, 0);
     this.disableBody(true, true);
     this.destroy();
-
-    // Corrected property name from this.enemyDef to this.enemyDefinition
     if (this.enemyDefinition) {
-      this.enemyDefinition.isDead = true; // Mark the definition as dead
+      this.enemyDefinition.isDead = true;
       console.log(`Enemy ${this.id} marked as dead in room data.`);
     }
   }

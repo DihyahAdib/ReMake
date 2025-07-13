@@ -48,6 +48,16 @@ export class GameScene extends Phaser.Scene {
       rmkey: "StartingRoom",
     },
     {
+      id: "beginner mob",
+      xOffset: 400,
+      yOffset: -300,
+      speed: 120,
+      damage: 15,
+      health: 150,
+      isDead: false,
+      rmkey: "room3",
+    },
+    {
       id: "intermediate mob",
       xOffset: 200,
       yOffset: 50,
@@ -79,7 +89,7 @@ export class GameScene extends Phaser.Scene {
       cooldown: 350,
       speed: 200,
       pickedUp: false,
-      rmkey: "room3",
+      rmkey: "",
     },
   ];
 
@@ -196,7 +206,6 @@ export class GameScene extends Phaser.Scene {
     //remember to make some sort of function that sets this to a current room if a player leaves the game and rejoins. it should always start them in the beginning (currentRoomKey)
     this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
-    this.handleItemPickUp();
 
     this.playerHpText = this.add
       .text(128, 92, `HP: ${this.player.health}`, {
@@ -254,6 +263,7 @@ export class GameScene extends Phaser.Scene {
     this.doorGroup = this.physics.add.staticGroup();
     this.enemyGroup = this.physics.add.group();
 
+    this.handleItemPickUp();
     const roomData = this.rooms[roomKey];
     this.currentRoomKey = roomKey;
 
@@ -335,7 +345,6 @@ export class GameScene extends Phaser.Scene {
       roomData.enemies.forEach((enemyDef) => {
         if (!enemyDef.isDead) {
           const newEnemy = Enemy.createEnemyFromDef(this, enemyDef);
-          newEnemy.enemyDefinition = enemyDef;
           this.enemyGroup.add(newEnemy);
         }
       });
@@ -355,6 +364,21 @@ export class GameScene extends Phaser.Scene {
         this
       );
       this.physics.add.collider(this.enemyGroup, this.enemyGroup);
+    }
+
+    if (
+      this.player.equippedWeapon &&
+      this.player.equippedWeapon.projectileGroup &&
+      this.enemyGroup
+    ) {
+      this.physics.add.overlap(
+        this.player.equippedWeapon.projectileGroup,
+        this.enemyGroup,
+        (projectile, enemy) => {
+          enemy.takeDamage(this.player.equippedWeapon.damage);
+          projectile.destroy();
+        }
+      );
     }
     console.log(`Loaded room: ${roomKey}`);
   }
@@ -476,10 +500,6 @@ export class GameScene extends Phaser.Scene {
       const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
       if (pickedUpWeaponDef) {
         pickedUpWeaponDef.pickedUp = true;
-        const structDef = this.weaponStructs.find(
-          (def) => def.id === weapon.id && def.rmkey === this.currentRoomKey
-        );
-        if (structDef) structDef.pickedUp = true;
         console.log(
           `Weapon ${weapon.id} in ${this.currentRoomKey} permanently marked as picked up.`
         );
@@ -494,13 +514,6 @@ export class GameScene extends Phaser.Scene {
     if (this.player && this.player.equippedWeapon) {
       this.player.equippedWeapon.x = this.player.x;
       this.player.equippedWeapon.y = this.player.y;
-    }
-
-    if (weapon.projectileGroup && this.enemyGroup) {
-      this.physics.add.overlap(weapon.projectileGroup, this.enemyGroup, (projectile, enemy) => {
-        enemy.takeDamage(weapon.damage);
-        projectile.destroy();
-      });
     }
   }
 
