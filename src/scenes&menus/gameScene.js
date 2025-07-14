@@ -28,43 +28,31 @@ export class GameScene extends Phaser.Scene {
   roomContentGroup = null;
   weaponGroup = null;
   player = null;
-  playerNameTag = null;
-  playerHpText = null;
-  fpsText = null;
-  escText = null;
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
 
   enemyStructs = [
     {
-      id: "beginner mob",
+      id: "beginner mob 1",
       xOffset: 200,
       yOffset: -200,
       speed: 100,
       damage: 10,
       health: 100,
       isDead: false,
+      count: 2,
       rmkey: "StartingRoom",
     },
     {
-      id: "beginner mob",
+      id: "beginner mob 2",
       xOffset: 400,
       yOffset: -300,
       speed: 120,
-      damage: 15,
-      health: 150,
+      damage: 10,
+      health: 100,
       isDead: false,
-      rmkey: "room3",
-    },
-    {
-      id: "intermediate mob",
-      xOffset: 200,
-      yOffset: 50,
-      speed: 150,
-      damage: 20,
-      health: 200,
-      isDead: false,
+      count: 4,
       rmkey: "room2",
     },
   ];
@@ -79,17 +67,6 @@ export class GameScene extends Phaser.Scene {
       speed: 400,
       pickedUp: false,
       rmkey: "StartingRoom",
-    },
-
-    {
-      id: "Basic Shooter",
-      x: 200,
-      y: 200,
-      damage: 30,
-      cooldown: 350,
-      speed: 200,
-      pickedUp: false,
-      rmkey: "",
     },
   ];
 
@@ -203,7 +180,7 @@ export class GameScene extends Phaser.Scene {
     this.weaponGroup = this.physics.add.group();
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
-    //remember to make some sort of function that sets this to a current room if a player leaves the game and rejoins. it should always start them in the beginning (currentRoomKey)
+
     this.currentRoomKey = "StartingRoom";
     this.loadRoom(this.currentRoomKey);
 
@@ -514,6 +491,17 @@ export class GameScene extends Phaser.Scene {
     if (this.player && this.player.equippedWeapon) {
       this.player.equippedWeapon.x = this.player.x;
       this.player.equippedWeapon.y = this.player.y;
+    }
+
+    if (this.player.equippedWeapon.projectileGroup) {
+      this.physics.add.overlap(
+        this.player.equippedWeapon.projectileGroup,
+        this.enemyGroup,
+        (projectile, enemy) => {
+          enemy.takeDamage(this.player.equippedWeapon.damage);
+          projectile.destroy();
+        }
+      );
     }
   }
 

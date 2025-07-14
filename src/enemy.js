@@ -1,20 +1,32 @@
 //enemy.js
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, frame, id, speed, damage, health, death) {
+  constructor(
+    scene,
+    x,
+    y,
+    texture,
+    frame,
+    id,
+    enemySpeed,
+    enemyDamage,
+    enemyHealth,
+    isEnemyDead,
+    enemyAmount
+  ) {
     super(scene, x, y, texture, frame);
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.id = id;
-    this.speed = speed;
-    this.damage = damage;
-    this.health = health;
-    this.isDead = death;
+    this.speed = enemySpeed;
+    this.damage = enemyDamage;
+    this.health = enemyHealth;
+    this.isDead = isEnemyDead;
+    this.count = enemyAmount;
 
     this.canTakeDamage = true;
-
     this.setCollideWorldBounds(true);
     this.body.setDrag(50);
     this.body.setDamping(true);
@@ -22,16 +34,54 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.currentScene = scene;
     this.mobsSpeedIncreaseCount = 0;
+
     this.enemyDefinition = null;
+    this.nameTag = null;
+    this.healthTag = null;
+
+    this.createTags();
+  }
+
+  createTags() {
+    this.nameTag = this.currentScene.add
+      .text(this.x, this.y - this.displayHeight / 2 - 10, this.id, {
+        font: "12px Arial",
+        fill: "#FFD700",
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
+    this.healthTag = this.currentScene.add
+      .text(this.x, this.y - this.displayHeight / 2 - 25, `HP: ${this.health}`, {
+        font: "12px Arial",
+        fill: "#FF0000",
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setDepth(11);
   }
 
   update(time, delta) {
-    if (this.isDead) return;
+    if (this.isDead) {
+      if (this.nameTag) this.nameTag.setVisible(false);
+      if (this.healthTag) this.healthTag.setVisible(false);
+      return;
+    }
     this.move();
+
+    if (this.nameTag) {
+      this.nameTag.x = this.x;
+      this.nameTag.y = this.y - this.displayHeight / 2 - 10;
+    }
+    if (this.healthTag) {
+      this.healthTag.x = this.x;
+      this.healthTag.y = this.y - this.displayHeight / 2 - 25;
+      this.healthTag.setText(`HP: ${this.health}`);
+    }
   }
 
   takeDamage(amount) {
-    if (this.canTakeDamage && !this.isDead) {
+    if (this.canTakeDamage && !this.isDead && this.active) {
       this.health -= amount;
       console.log(`Enemy ${this.health}`);
       if (this.health <= 0) {
@@ -81,6 +131,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.body.setVelocity(0, 0);
     this.disableBody(true, true);
     this.destroy();
+
+    if (this.nameTag) {
+      this.nameTag.destroy();
+      this.nameTag = null;
+    }
+    if (this.healthTag) {
+      this.healthTag.destroy();
+      this.healthTag = null;
+    }
+
     if (this.enemyDefinition) {
       this.enemyDefinition.isDead = true;
       console.log(`Enemy ${this.id} marked as dead in room data.`);
@@ -98,7 +158,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       enemyDef.speed,
       enemyDef.damage,
       enemyDef.health,
-      enemyDef.isDead
+      enemyDef.isDead,
+      enemyDef.count
     );
     enemy.enemyDefinition = enemyDef;
     return enemy;
