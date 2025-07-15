@@ -101,6 +101,12 @@ REMAKE/
 
 * Save/load game functionality.
 
+* controller control support
+
+* OST, audio, and SFX
+
+* Restart button
+
 ## Contributing
 If you want to be a bug tester or give me feedback, you're free to make an ‘issues’ post or contact me by email/discord.\
 Email: muhanddis4ever@gmail.com\
