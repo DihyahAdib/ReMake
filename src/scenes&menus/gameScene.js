@@ -1,5 +1,4 @@
 //gameScene.js
-
 import { Enemy } from "../enemy.js";
 import {
   gameWidth,
@@ -28,6 +27,10 @@ export class GameScene extends Phaser.Scene {
   roomContentGroup = null;
   weaponGroup = null;
   player = null;
+  playerNameTag = null;
+  playerHpText = null;
+  fpsText = null;
+  escText = null;
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
@@ -185,9 +188,6 @@ export class GameScene extends Phaser.Scene {
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
 
-    this.currentRoomKey = "StartingRoom";
-    this.loadRoom(this.currentRoomKey);
-
     this.playerHpText = this.add
       .text(128, 92, `HP: ${this.player.health}`, {
         font: "16px Arial",
@@ -200,10 +200,15 @@ export class GameScene extends Phaser.Scene {
         fill: "#ffffff",
       })
       .setScrollFactor(0);
+
+    this.currentRoomKey = "StartingRoom";
+    this.loadRoom(this.currentRoomKey);
+    this.handleItemPickUp();
+    this.updateDebugVisuals();
   }
 
   update(time, delta) {
-    if (!this.keys || !this.player || !this.playerHpText || !this.fpsText) {
+    if (!this.keys || !this.player || !this.playerHpText || !this.fpsText || !this.playerNameTag) {
       return;
     }
 
@@ -235,6 +240,52 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
+  }
+
+  updateDebugVisuals() {
+    if (this.isDevelopmentMode) {
+      if (!this.debugGraphics) {
+        this.debugGraphics = this.add.graphics({
+          lineStyle: { width: 2, color: 0x00ff00, alpha: 1 },
+        });
+        this.debugGraphics.setDepth(999);
+      }
+      this.debugGraphics.clear();
+      this.debugGraphics.strokeRect(
+        rmDim.roomOffsetX,
+        rmDim.roomOffsetY,
+        rmDim.innerRoomWidth,
+        rmDim.innerRoomHeight
+      );
+      this.debugGraphics.setVisible(true);
+    } else {
+      if (this.debugGraphics) {
+        this.debugGraphics.destroy();
+        this.debugGraphics = null;
+      }
+    }
+
+    if (this.player && this.player.body) {
+      this.player.body.debugShowBody = this.isDevelopmentMode;
+      this.player.body.debugShowVelocity = this.isDevelopmentMode;
+    }
+
+    this.physics.world.drawDebug = this.isDevelopmentMode;
+    if (this.physics.world.debugGraphic) {
+      this.physics.world.debugGraphic.visible = this.isDevelopmentMode;
+      if (!this.isDevelopmentMode) {
+        this.physics.world.debugGraphic.clear();
+      }
+    }
+
+    if (this.enemyGroup) {
+      this.enemyGroup.children.each(function (enemy) {
+        if (enemy.body) {
+          enemy.body.debugShowBody = this.isDevelopmentMode;
+          enemy.body.debugShowVelocity = this.isDevelopmentMode;
+        }
+      }, this);
+    }
   }
 
   loadRoom(roomKey, entryDirection = null) {
@@ -275,35 +326,7 @@ export class GameScene extends Phaser.Scene {
       rmDim.innerRoomHeight
     );
 
-    if (this.isDevelopmentMode) {
-      if (this.debugGraphics) {
-        this.debugGraphics.destroy();
-      }
-      this.debugGraphics = this.add.graphics({
-        lineStyle: { width: 2, color: 0x00ff00, alpha: 1 },
-      });
-      this.debugGraphics.strokeRect(
-        rmDim.roomOffsetX,
-        rmDim.roomOffsetY,
-        rmDim.innerRoomWidth,
-        rmDim.innerRoomHeight
-      );
-      this.debugGraphics.setDepth(999);
-      this.debugGraphics.setVisible(true);
-    } else {
-      if (this.debugGraphics) {
-        this.debugGraphics.destroy();
-        this.debugGraphics = null;
-      }
-    }
-
-    this.physics.world.drawDebug = this.isDevelopmentMode;
-    if (this.physics.world.debugGraphic) {
-      this.physics.world.debugGraphic.visible = this.isDevelopmentMode;
-    }
-
-    this.player.body.debugShowBody = this.isDevelopmentMode;
-    this.player.body.debugShowVelocity = this.isDevelopmentMode;
+    this.updateDebugVisuals();
 
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
@@ -339,18 +362,15 @@ export class GameScene extends Phaser.Scene {
 
     if (roomData.weapons && roomData.weapons.length > 0) {
       roomData.weapons.forEach((weaponDef) => {
-        if (!weaponDef.pickedUp) {
+        if (
+          !weaponDef.pickedUp &&
+          !(this.player.equippedWeapon && this.player.equippedWeapon.id === weaponDef.id)
+        ) {
           const newWeapon = Weapons.createWeaponFromDef(this, weaponDef);
-
           newWeapon.weaponDefinition = weaponDef;
           newWeapon.setScale(0.15);
+          newWeapon.setDepth(0);
           this.weaponGroup.add(newWeapon);
-
-          if (this.isDevelopmentMode) {
-            this.debugOn(newWeapon, true, true);
-          } else {
-            this.debugOff(newWeapon, true, true);
-          }
         }
       });
     }
@@ -359,14 +379,7 @@ export class GameScene extends Phaser.Scene {
       roomData.enemies.forEach((enemyDef) => {
         if (!enemyDef.isDead) {
           const newEnemy = Enemy.createEnemyFromDef(this, enemyDef);
-
           this.enemyGroup.add(newEnemy);
-
-          if (this.isDevelopmentMode) {
-            this.debugOn(newEnemy, true, true);
-          } else {
-            this.debugOff(newEnemy, true, true);
-          }
         }
       });
 
@@ -431,11 +444,6 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "left");
       door.body.allowGravity = false;
       door.refreshBody();
-      if (this.isDevelopmentMode) {
-        this.debugOn(door, true, false);
-      } else {
-        this.debugOff(door, true, false);
-      }
     }
     // Left Door
     if (connections.left) {
@@ -452,11 +460,6 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "right");
       door.body.allowGravity = false;
       door.refreshBody();
-      if (this.isDevelopmentMode) {
-        this.debugOn(door, true, false);
-      } else {
-        this.debugOff(door, true, false);
-      }
     }
     // Up Door
     if (connections.up) {
@@ -473,11 +476,6 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "down");
       door.body.allowGravity = false;
       door.refreshBody();
-      if (this.isDevelopmentMode) {
-        this.debugOn(door, true, false);
-      } else {
-        this.debugOff(door, true, false);
-      }
     }
     // Down Door
     if (connections.down) {
@@ -494,11 +492,6 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "up");
       door.body.allowGravity = false;
       door.refreshBody();
-      if (this.isDevelopmentMode) {
-        this.debugOn(door, true, false);
-      } else {
-        this.debugOff(door, true, false);
-      }
     }
 
     this.physics.add.overlap(this.player, this.doorGroup, this.handleRoomTransition, null, this);
@@ -530,7 +523,8 @@ export class GameScene extends Phaser.Scene {
     player.inventory.push({
       id: weapon.id,
       damage: weapon.damage,
-      Cooldown: weapon.Cooldown,
+      cooldown: weapon.cooldown,
+      speed: weapon.speed,
     });
 
     this.weaponGroup.remove(weapon, false, false);
@@ -548,19 +542,12 @@ export class GameScene extends Phaser.Scene {
 
     weapon.x = player.x;
     weapon.y = player.y;
-    weapon.setDepth(1);
+    weapon.setDepth(0);
     player.equippedWeapon = weapon;
 
     if (this.player && this.player.equippedWeapon) {
       this.player.equippedWeapon.x = this.player.x;
       this.player.equippedWeapon.y = this.player.y;
-    }
-
-    if (weapon.body) {
-      weapon.body.enable = false;
-      if (!this.isDevelopmentMode) {
-        this.debugOff(weapon, true, true);
-      }
     }
 
     if (this.player.equippedWeapon.projectileGroup) {
@@ -572,20 +559,6 @@ export class GameScene extends Phaser.Scene {
           projectile.destroy();
         }
       );
-    }
-  }
-
-  debugOn(obj, turnBodyDebugOn, turnVelocityOn) {
-    if (obj.body) {
-      if (turnBodyDebugOn) obj.body.debugShowBody = true;
-      if (turnVelocityOn) obj.body.debugShowVelocity = true;
-    }
-  }
-
-  debugOff(obj, turnBodyDebugOff, turnVelocityOff) {
-    if (obj.body) {
-      if (turnBodyDebugOff) obj.body.debugShowBody = false;
-      if (turnVelocityOff) obj.body.debugShowVelocity = false;
     }
   }
 

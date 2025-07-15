@@ -136,6 +136,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.nameTag.destroy();
       this.nameTag = null;
     }
+
     if (this.healthTag) {
       this.healthTag.destroy();
       this.healthTag = null;
