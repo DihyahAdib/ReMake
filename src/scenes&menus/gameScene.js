@@ -31,6 +31,7 @@ export class GameScene extends Phaser.Scene {
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
+  isDevelopmentMode = false;
 
   enemyStructs = [
     {
@@ -154,9 +155,12 @@ export class GameScene extends Phaser.Scene {
     this.load.image("door_trigger", "assets/door.png");
   }
 
-  create() {
+  async create() {
     this.cameras.main.fadeIn(400, 0, 0, 0);
-    window.myGameScene = this;
+
+    this.isDevelopmentMode = await window.myUniqueElectronAPI.isDevelopment();
+    console.log("GameScene isDevelopmentMode:", this.isDevelopmentMode);
+
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
@@ -199,7 +203,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.player && !this.player.isDead) {
+    if (!this.keys || !this.player || !this.playerHpText || !this.fpsText) {
+      return;
+    }
+
+    if (!this.player.isDead) {
       this.player.update(time, delta);
       this.playerHpText.setText(`HP: ${this.player.health}`);
 
@@ -242,6 +250,11 @@ export class GameScene extends Phaser.Scene {
 
     this.handleItemPickUp();
     const roomData = this.rooms[roomKey];
+    if (!roomData) {
+      console.error(`Room data not found for key: ${roomKey}`);
+      return;
+    }
+
     this.currentRoomKey = roomKey;
 
     const bg = this.add
@@ -262,18 +275,35 @@ export class GameScene extends Phaser.Scene {
       rmDim.innerRoomHeight
     );
 
-    if (this.debugGraphics) {
-      this.debugGraphics.destroy();
+    if (this.isDevelopmentMode) {
+      if (this.debugGraphics) {
+        this.debugGraphics.destroy();
+      }
+      this.debugGraphics = this.add.graphics({
+        lineStyle: { width: 2, color: 0x00ff00, alpha: 1 },
+      });
+      this.debugGraphics.strokeRect(
+        rmDim.roomOffsetX,
+        rmDim.roomOffsetY,
+        rmDim.innerRoomWidth,
+        rmDim.innerRoomHeight
+      );
+      this.debugGraphics.setDepth(999);
+      this.debugGraphics.setVisible(true);
+    } else {
+      if (this.debugGraphics) {
+        this.debugGraphics.destroy();
+        this.debugGraphics = null;
+      }
     }
-    this.debugGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00, alpha: 1 } });
 
-    this.debugGraphics.strokeRect(
-      rmDim.roomOffsetX,
-      rmDim.roomOffsetY,
-      rmDim.innerRoomWidth,
-      rmDim.innerRoomHeight
-    );
-    this.debugGraphics.setDepth(999);
+    this.physics.world.drawDebug = this.isDevelopmentMode;
+    if (this.physics.world.debugGraphic) {
+      this.physics.world.debugGraphic.visible = this.isDevelopmentMode;
+    }
+
+    this.player.body.debugShowBody = this.isDevelopmentMode;
+    this.player.body.debugShowVelocity = this.isDevelopmentMode;
 
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
@@ -299,7 +329,6 @@ export class GameScene extends Phaser.Scene {
 
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
-    // Invoke the function when creating world/rooms
     this.createRoomDoors(
       roomData.connections,
       rmDim.roomOffsetX,
@@ -312,8 +341,16 @@ export class GameScene extends Phaser.Scene {
       roomData.weapons.forEach((weaponDef) => {
         if (!weaponDef.pickedUp) {
           const newWeapon = Weapons.createWeaponFromDef(this, weaponDef);
+
           newWeapon.weaponDefinition = weaponDef;
+          newWeapon.setScale(0.15);
           this.weaponGroup.add(newWeapon);
+
+          if (this.isDevelopmentMode) {
+            this.debugOn(newWeapon, true, true);
+          } else {
+            this.debugOff(newWeapon, true, true);
+          }
         }
       });
     }
@@ -322,7 +359,14 @@ export class GameScene extends Phaser.Scene {
       roomData.enemies.forEach((enemyDef) => {
         if (!enemyDef.isDead) {
           const newEnemy = Enemy.createEnemyFromDef(this, enemyDef);
+
           this.enemyGroup.add(newEnemy);
+
+          if (this.isDevelopmentMode) {
+            this.debugOn(newEnemy, true, true);
+          } else {
+            this.debugOff(newEnemy, true, true);
+          }
         }
       });
 
@@ -387,6 +431,11 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "left");
       door.body.allowGravity = false;
       door.refreshBody();
+      if (this.isDevelopmentMode) {
+        this.debugOn(door, true, false);
+      } else {
+        this.debugOff(door, true, false);
+      }
     }
     // Left Door
     if (connections.left) {
@@ -403,6 +452,11 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "right");
       door.body.allowGravity = false;
       door.refreshBody();
+      if (this.isDevelopmentMode) {
+        this.debugOn(door, true, false);
+      } else {
+        this.debugOff(door, true, false);
+      }
     }
     // Up Door
     if (connections.up) {
@@ -419,6 +473,11 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "down");
       door.body.allowGravity = false;
       door.refreshBody();
+      if (this.isDevelopmentMode) {
+        this.debugOn(door, true, false);
+      } else {
+        this.debugOff(door, true, false);
+      }
     }
     // Down Door
     if (connections.down) {
@@ -435,6 +494,11 @@ export class GameScene extends Phaser.Scene {
       door.setData("entryDirection", "up");
       door.body.allowGravity = false;
       door.refreshBody();
+      if (this.isDevelopmentMode) {
+        this.debugOn(door, true, false);
+      } else {
+        this.debugOff(door, true, false);
+      }
     }
 
     this.physics.add.overlap(this.player, this.doorGroup, this.handleRoomTransition, null, this);
@@ -466,8 +530,7 @@ export class GameScene extends Phaser.Scene {
     player.inventory.push({
       id: weapon.id,
       damage: weapon.damage,
-      cooldown: weapon.cooldown,
-      speed: weapon.speed,
+      Cooldown: weapon.Cooldown,
     });
 
     this.weaponGroup.remove(weapon, false, false);
@@ -485,12 +548,19 @@ export class GameScene extends Phaser.Scene {
 
     weapon.x = player.x;
     weapon.y = player.y;
-    weapon.setDepth(10);
+    weapon.setDepth(1);
     player.equippedWeapon = weapon;
 
     if (this.player && this.player.equippedWeapon) {
       this.player.equippedWeapon.x = this.player.x;
       this.player.equippedWeapon.y = this.player.y;
+    }
+
+    if (weapon.body) {
+      weapon.body.enable = false;
+      if (!this.isDevelopmentMode) {
+        this.debugOff(weapon, true, true);
+      }
     }
 
     if (this.player.equippedWeapon.projectileGroup) {
@@ -502,6 +572,20 @@ export class GameScene extends Phaser.Scene {
           projectile.destroy();
         }
       );
+    }
+  }
+
+  debugOn(obj, turnBodyDebugOn, turnVelocityOn) {
+    if (obj.body) {
+      if (turnBodyDebugOn) obj.body.debugShowBody = true;
+      if (turnVelocityOn) obj.body.debugShowVelocity = true;
+    }
+  }
+
+  debugOff(obj, turnBodyDebugOff, turnVelocityOff) {
+    if (obj.body) {
+      if (turnBodyDebugOff) obj.body.debugShowBody = false;
+      if (turnVelocityOff) obj.body.debugShowVelocity = false;
     }
   }
 
