@@ -15,11 +15,16 @@ if (disableVSync) {
   console.log("VSync enabled via sttored setting.");
 }
 
+// Check if electron-reloader is installed and load it only in development
 try {
-  require("electron-reloader")(module, {});
-} catch (_) {
-  console.log("electron-reloader not loaded (likely in production or not installed)");
+  if (process.env.NODE_ENV === "development") {
+    require("electron-reloader")(module, {});
+  }
+} catch (e) {
+  console.log("electron-reloader not loaded (likely in production or not installed):", e.message);
 }
+
+const isDevelopment = process.env.NODE_ENV === "development";
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -35,20 +40,30 @@ function createWindow() {
 
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
+      webSecurity: !isDevelopment,
     },
-
+    show: false,
     autoHideMenuBar: true,
   });
+
   Menu.setApplicationMenu(null);
+
   mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
-  mainWindow.webContents.openDevTools();
+
+  if (isDevelopment) {
+    mainWindow.webContents.openDevTools();
+  }
 
   const disableFullScreenOnStart = store.get("disableFullScreen", false);
-
   mainWindow.setFullScreen(!disableFullScreenOnStart);
+
+  // Show window after content is loaded and full screen is set
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+  });
 }
 
 app.whenReady().then(() => {

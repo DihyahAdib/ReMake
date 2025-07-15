@@ -1,25 +1,64 @@
 {
-  "name": "ReMake",
+  "name": "remake",
   "prettier": {
     "printWidth": 100
   },
   "version": "1.0.0",
-  "description": "",
+  "description": "A Phaser game built with Electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "cross-env NODE_ENV=development electron .",
+    "start-win": "set NODE_ENV=development && electron .",
+    "start-ps": "$env:NODE_ENV='development'; electron .",
+    "dist": "electron-builder --dir",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [],
-  "author": "",
+  "author": "Dihyah Adib",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "electron": "^36.4.0",
     "electron-store": "^8.1.0",
     "phaser": "^3.90.0"
   },
   "devDependencies": {
+    "electron": "^36.4.0",
+    "cross-env": "^7.0.3",
+    "electron-builder": "^26.0.12",
     "electron-reloader": "^1.2.3"
+  },
+  "build": {
+    "appId": "com.NoCapStudios.remakegame",
+    "productName": "ReMake",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/electron",
+      "!node_modules/electron-builder",
+      "!node_modules/.bin",
+      "!node_modules/**/*.map"
+    ],
+    "extraFiles": [],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
