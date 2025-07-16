@@ -144,7 +144,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    * @param {boolean} [fromScene] - Whether this destroy call originated from the Scene.
    */
   destroy(fromScene) {
-    // Custom cleanup for nameTag and healthTag
     if (this.nameTag) {
       this.nameTag.destroy();
       this.nameTag = null;
@@ -153,8 +152,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.healthTag.destroy();
       this.healthTag = null;
     }
-
-    // Always call the parent class's destroy method
     super.destroy(fromScene);
   }
 
