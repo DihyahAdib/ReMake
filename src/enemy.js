@@ -63,8 +63,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   update(time, delta) {
     if (this.isDead) {
-      if (this.nameTag) this.nameTag.setVisible(false);
-      if (this.healthTag) this.healthTag.setVisible(false);
       return;
     }
     this.move();
@@ -130,22 +128,34 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.isDead = true;
     this.body.setVelocity(0, 0);
     this.disableBody(true, true);
-    this.destroy();
-
-    if (this.nameTag) {
-      this.nameTag.destroy();
-      this.nameTag = null;
-    }
-
-    if (this.healthTag) {
-      this.healthTag.destroy();
-      this.healthTag = null;
-    }
 
     if (this.enemyDefinition) {
       this.enemyDefinition.isDead = true;
       console.log(`Enemy ${this.id} marked as dead in room data.`);
     }
+
+    this.destroy();
+  }
+
+  /**
+   * Overrides the default Phaser.GameObjects.Sprite destroy method.
+   * This ensures that associated game objects like nameTag and healthTag are also destroyed
+   * when the enemy sprite itself is destroyed (e.g., when clearing a group).
+   * @param {boolean} [fromScene] - Whether this destroy call originated from the Scene.
+   */
+  destroy(fromScene) {
+    // Custom cleanup for nameTag and healthTag
+    if (this.nameTag) {
+      this.nameTag.destroy();
+      this.nameTag = null;
+    }
+    if (this.healthTag) {
+      this.healthTag.destroy();
+      this.healthTag = null;
+    }
+
+    // Always call the parent class's destroy method
+    super.destroy(fromScene);
   }
 
   static createEnemyFromDef(scene, enemyDef) {
