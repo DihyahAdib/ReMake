@@ -1,12 +1,11 @@
 //main.js
-const { app, BrowserWindow, screen, Menu, ipcMain } = require("electron");
 
+const { app, BrowserWindow, screen, Menu, ipcMain } = require("electron");
 const path = require("path");
 const Store = require("electron-store");
 
 const store = new Store();
 
-// --- VSync setting application on startup ---
 const disableVSync = store.get("disableVSync", false);
 if (disableVSync) {
   app.commandLine.appendSwitch("disable-gpu-vsync");
@@ -15,16 +14,15 @@ if (disableVSync) {
   console.log("VSync enabled via sttored setting.");
 }
 
-// Check if electron-reloader is installed and load it only in development
+const isDevelopment = process.env.NODE_ENV === "development";
+
 try {
-  if (process.env.NODE_ENV === "development") {
+  if (isDevelopment) {
     require("electron-reloader")(module, {});
   }
 } catch (e) {
   console.log("electron-reloader not loaded (likely in production or not installed):", e.message);
 }
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -50,7 +48,6 @@ function createWindow() {
   });
 
   Menu.setApplicationMenu(null);
-
   mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
 
   if (isDevelopment) {
@@ -60,7 +57,6 @@ function createWindow() {
   const disableFullScreenOnStart = store.get("disableFullScreen", false);
   mainWindow.setFullScreen(!disableFullScreenOnStart);
 
-  // Show window after content is loaded and full screen is set
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
   });
@@ -82,7 +78,6 @@ app.whenReady().then(() => {
     return store.get(key);
   });
 
-  // Handler for synchronous screen size requests from preload
   ipcMain.on("get-screen-width", (event) => {
     event.returnValue = screen.getPrimaryDisplay().workAreaSize.width;
   });
@@ -98,6 +93,10 @@ app.whenReady().then(() => {
     }
   });
 
+  ipcMain.handle("is-development", () => {
+    return isDevelopment;
+  });
+
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows.length === 0) {
       createWindow();
@@ -110,4 +109,3 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
-//app.commandLine.appendSwitch("disable-frame-rate-limit");

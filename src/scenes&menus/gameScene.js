@@ -1,5 +1,4 @@
 //gameScene.js
-
 import { Enemy } from "../enemy.js";
 import {
   gameWidth,
@@ -28,9 +27,14 @@ export class GameScene extends Phaser.Scene {
   roomContentGroup = null;
   weaponGroup = null;
   player = null;
+  playerNameTag = null;
+  playerHpText = null;
+  fpsText = null;
+  escText = null;
   keys = null;
   currentRoomKey = null;
   debugGraphics = null;
+  isDevelopmentMode = false;
 
   enemyStructs = [
     {
@@ -154,9 +158,12 @@ export class GameScene extends Phaser.Scene {
     this.load.image("door_trigger", "assets/door.png");
   }
 
-  create() {
+  async create() {
     this.cameras.main.fadeIn(400, 0, 0, 0);
-    window.myGameScene = this;
+
+    this.isDevelopmentMode = await window.myUniqueElectronAPI.isDevelopment();
+    console.log("GameScene isDevelopmentMode:", this.isDevelopmentMode);
+
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
@@ -181,9 +188,6 @@ export class GameScene extends Phaser.Scene {
     this.roomContentGroup = this.add.group();
     this.doorGroup = this.physics.add.staticGroup();
 
-    this.currentRoomKey = "StartingRoom";
-    this.loadRoom(this.currentRoomKey);
-
     this.playerHpText = this.add
       .text(128, 92, `HP: ${this.player.health}`, {
         font: "16px Arial",
@@ -196,10 +200,19 @@ export class GameScene extends Phaser.Scene {
         fill: "#ffffff",
       })
       .setScrollFactor(0);
+
+    this.currentRoomKey = "StartingRoom";
+    this.loadRoom(this.currentRoomKey);
+    this.handleItemPickUp();
+    this.updateDebugVisuals();
   }
 
   update(time, delta) {
-    if (this.player && !this.player.isDead) {
+    if (!this.keys || !this.player || !this.playerHpText || !this.fpsText || !this.playerNameTag) {
+      return;
+    }
+
+    if (!this.player.isDead) {
       this.player.update(time, delta);
       this.playerHpText.setText(`HP: ${this.player.health}`);
 
@@ -229,6 +242,52 @@ export class GameScene extends Phaser.Scene {
     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
   }
 
+  updateDebugVisuals() {
+    if (this.isDevelopmentMode) {
+      if (!this.debugGraphics) {
+        this.debugGraphics = this.add.graphics({
+          lineStyle: { width: 2, color: 0x00ff00, alpha: 1 },
+        });
+        this.debugGraphics.setDepth(999);
+      }
+      this.debugGraphics.clear();
+      this.debugGraphics.strokeRect(
+        rmDim.roomOffsetX,
+        rmDim.roomOffsetY,
+        rmDim.innerRoomWidth,
+        rmDim.innerRoomHeight
+      );
+      this.debugGraphics.setVisible(true);
+    } else {
+      if (this.debugGraphics) {
+        this.debugGraphics.destroy();
+        this.debugGraphics = null;
+      }
+    }
+
+    if (this.player && this.player.body) {
+      this.player.body.debugShowBody = this.isDevelopmentMode;
+      this.player.body.debugShowVelocity = this.isDevelopmentMode;
+    }
+
+    this.physics.world.drawDebug = this.isDevelopmentMode;
+    if (this.physics.world.debugGraphic) {
+      this.physics.world.debugGraphic.visible = this.isDevelopmentMode;
+      if (!this.isDevelopmentMode) {
+        this.physics.world.debugGraphic.clear();
+      }
+    }
+
+    if (this.enemyGroup) {
+      this.enemyGroup.children.each(function (enemy) {
+        if (enemy.body) {
+          enemy.body.debugShowBody = this.isDevelopmentMode;
+          enemy.body.debugShowVelocity = this.isDevelopmentMode;
+        }
+      }, this);
+    }
+  }
+
   loadRoom(roomKey, entryDirection = null) {
     if (this.roomContentGroup) this.roomContentGroup.clear(true, true);
     if (this.doorGroup) this.doorGroup.clear(true, true);
@@ -242,6 +301,11 @@ export class GameScene extends Phaser.Scene {
 
     this.handleItemPickUp();
     const roomData = this.rooms[roomKey];
+    if (!roomData) {
+      console.error(`Room data not found for key: ${roomKey}`);
+      return;
+    }
+
     this.currentRoomKey = roomKey;
 
     const bg = this.add
@@ -262,18 +326,7 @@ export class GameScene extends Phaser.Scene {
       rmDim.innerRoomHeight
     );
 
-    if (this.debugGraphics) {
-      this.debugGraphics.destroy();
-    }
-    this.debugGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00, alpha: 1 } });
-
-    this.debugGraphics.strokeRect(
-      rmDim.roomOffsetX,
-      rmDim.roomOffsetY,
-      rmDim.innerRoomWidth,
-      rmDim.innerRoomHeight
-    );
-    this.debugGraphics.setDepth(999);
+    this.updateDebugVisuals();
 
     let spawnPoint = roomData.playerSpawnPoints[entryDirection];
     if (!spawnPoint) {
@@ -299,7 +352,6 @@ export class GameScene extends Phaser.Scene {
 
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
-    // Invoke the function when creating world/rooms
     this.createRoomDoors(
       roomData.connections,
       rmDim.roomOffsetX,
@@ -310,9 +362,14 @@ export class GameScene extends Phaser.Scene {
 
     if (roomData.weapons && roomData.weapons.length > 0) {
       roomData.weapons.forEach((weaponDef) => {
-        if (!weaponDef.pickedUp) {
+        if (
+          !weaponDef.pickedUp &&
+          !(this.player.equippedWeapon && this.player.equippedWeapon.id === weaponDef.id)
+        ) {
           const newWeapon = Weapons.createWeaponFromDef(this, weaponDef);
           newWeapon.weaponDefinition = weaponDef;
+          newWeapon.setScale(0.15);
+          newWeapon.setDepth(0);
           this.weaponGroup.add(newWeapon);
         }
       });
@@ -485,7 +542,7 @@ export class GameScene extends Phaser.Scene {
 
     weapon.x = player.x;
     weapon.y = player.y;
-    weapon.setDepth(10);
+    weapon.setDepth(0);
     player.equippedWeapon = weapon;
 
     if (this.player && this.player.equippedWeapon) {
