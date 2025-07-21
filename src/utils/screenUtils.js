@@ -47,3 +47,39 @@ export const rmProps = {
   topBottomOffset: 150,
   doorThickness: 50,
 };
+
+/**
+ * Returns the current game width for a given Phaser scene.
+ * @param {Phaser.Scene} scene
+ * @returns {number}
+ */
+export function getCurrentGameWidth(scene) {
+  return scene.scale.width;
+}
+
+/**
+ * Returns the current game height for a given Phaser scene.
+ * @param {Phaser.Scene} scene
+ * @returns {number}
+ */
+export function getCurrentGameHeight(scene) {
+  return scene.scale.height;
+}
+
+/**
+ * Returns the current game center X for a given Phaser scene.
+ * @param {Phaser.Scene} scene
+ * @returns {number}
+ */
+export function getCurrentGameCenterX(scene) {
+  return getCurrentGameWidth(scene) / 2;
+}
+
+/**
+ * Returns the current game center Y for a given Phaser scene.
+ * @param {Phaser.Scene} scene
+ * @returns {number}
+ */
+export function getCurrentGameCenterY(scene) {
+  return getCurrentGameHeight(scene) / 2;
+}

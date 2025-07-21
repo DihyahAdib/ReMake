@@ -1,19 +1,21 @@
 //pauseMenu.js
-import { windowCenterX, windowCenterY } from "../utils/screenUtils.js";
+import {
+  windowCenterX,
+  windowCenterY,
+  getCurrentGameWidth,
+  getCurrentGameHeight,
+  getCurrentGameCenterX,
+  getCurrentGameCenterY,
+} from "../utils/screenUtils.js";
 
 export class PauseScene extends Phaser.Scene {
-  UiDim = {
-    panelWidth: 700,
-    panelHeight: 900,
-    barWidth: 90,
-    barHeight: 150,
-    lineThickness: 8,
-    linePaddingX: 180,
-    linePaddingY: 300,
-  };
-
   canAccessPauseMenu = true;
   interactionCoolDown = 500;
+
+  // Reference to the HTML element
+  pauseMenuContainer = null;
+  resumeButton = null;
+  settingButton = null;
 
   constructor() {
     super({ key: "PauseScene" });
@@ -22,201 +24,53 @@ export class PauseScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor("rgba(0, 0, 0, 0)");
 
+    this.pauseMenuContainer = document.getElementById("pause-menu-container");
+    this.resumeButton = document.getElementById("resume-button");
+    this.settingsButton = document.getElementById("settings-button");
+
     this.keys = this.input.keyboard.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
     });
 
-    this.dimBackground = this.add
-      .rectangle(
-        this.getCurrentGameCenterX(),
-        this.getCurrentGameCenterY(),
-        this.getCurrentGameWidth(),
-        this.getCurrentGameHeight(),
-        0x000000
-      )
-      .setAlpha(0)
-      .setDepth(0)
-      .setVisible(false);
-
-    this.topBar = this.add
-      .rectangle(
-        windowCenterX,
-        -this.UiDim.barHeight / 2,
-        this.getCurrentGameWidth(),
-        this.UiDim.barHeight,
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
-
-    this.bottomBar = this.add
-      .rectangle(
-        windowCenterX,
-        this.getCurrentGameHeight() + this.UiDim.barHeight / 2,
-        this.getCurrentGameWidth(),
-        this.UiDim.barHeight,
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
-
-    this.leftBar = this.add
-      .rectangle(
-        -this.UiDim.barWidth / 2,
-        windowCenterY,
-        this.UiDim.barWidth,
-        this.getCurrentGameHeight(),
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
-
-    this.rightBar = this.add
-      .rectangle(
-        this.getCurrentGameWidth() + this.UiDim.barWidth / 2,
-        windowCenterY,
-        this.UiDim.barWidth,
-        this.getCurrentGameHeight(),
-        0x774b2a,
-        1
-      )
-      .setDepth(10);
-
-    this.topBarInnerLine = this.add
-      .rectangle(
-        windowCenterX,
-        -this.UiDim.barHeight + this.UiDim.lineThickness / 2,
-        this.getCurrentGameWidth() - this.UiDim.linePaddingX,
-        this.UiDim.lineThickness,
-        0x000000,
-        1
-      )
-      .setDepth(11)
-      .setOrigin(0.5, 0)
-      .setVisible(false);
-
-    this.bottomBarInnerLine = this.add
-      .rectangle(
-        windowCenterX,
-        this.getCurrentGameHeight() + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2,
-        this.getCurrentGameWidth() - this.UiDim.linePaddingX,
-        this.UiDim.lineThickness,
-        0x000000,
-        1
-      )
-      .setDepth(11)
-      .setOrigin(0.5, 1)
-      .setVisible(false);
-
-    this.leftBarInnerLine = this.add
-      .rectangle(
-        -this.UiDim.barWidth + this.UiDim.lineThickness / 2,
-        windowCenterY,
-        this.UiDim.lineThickness,
-        this.getCurrentGameHeight() + this.UiDim.linePaddingY,
-        0x000000,
-        1
-      )
-      .setDepth(11)
-      .setOrigin(0, 0.5)
-      .setVisible(false);
-
-    this.rightBarInnerLine = this.add
-      .rectangle(
-        this.getCurrentGameWidth() + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2,
-        windowCenterY,
-        this.UiDim.lineThickness,
-        this.getCurrentGameHeight() + this.UiDim.linePaddingY,
-        0x000000,
-        1
-      )
-      .setDepth(11)
-      .setOrigin(1, 0.5)
-      .setVisible(false);
-
-    const panel = this.add.graphics();
-    panel.fillStyle(0x000000, 0.6);
-    panel.fillRect(0, 0, this.UiDim.panelWidth, this.UiDim.panelHeight);
-
-    this.uiContainer = this.add.container(windowCenterX, windowCenterY);
-    this.uiContainer.add(panel);
-
-    panel.setPosition(-this.UiDim.panelWidth / 2, -this.UiDim.panelHeight / 2);
-
-    const resumeBtn = this.add
-      .text(0, -100, "Resume", {
-        fontSize: "32px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#555",
-        padding: { x: 20, y: 10 },
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    resumeBtn.on("pointerdown", () => {
+    this.resumeButton.addEventListener("pointerdown", () => {
       if (this.canAccessPauseMenu) {
         this.hideUIPanel();
       }
     });
 
-    const settingsBtn = this.add
-      .text(0, 0, "Settings", {
-        fontSize: "32px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#555",
-        padding: { x: 20, y: 10 },
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    settingsBtn.on("pointerdown", () => {
+    this.settingsButton.addEventListener("pointerdown", () => {
+      this.hideUIPanel();
       this.scene.stop("PauseScene");
-      this.scene.launch("SettingScene", { from: "PauseScene" });
+      this.scene.launch("settingScene", { from: "PauseScene" });
     });
 
-    this.uiContainer.add(resumeBtn);
-    this.uiContainer.add(settingsBtn);
-    this.uiContainer.setScale(0);
-    this.uiContainer.setAlpha(0);
-    this.uiContainer.setDepth(4);
-    this.uiContainer.setVisible(false);
+    this.pauseMenuContainer.classList.remove("visible");
     this.showUIPanel();
   }
 
   update() {
     if (this.canAccessPauseMenu && this.keys && Phaser.Input.Keyboard.JustDown(this.keys.Esc)) {
-      if (this.uiContainer.visible) {
+      if (this.pauseMenuContainer.classList.contains("visible")) {
         this.hideUIPanel();
       }
     }
   }
-
+  //something
   showUIPanel() {
     this.canAccessPauseMenu = false;
 
-    this.uiContainer.setVisible(true);
-    this.dimBackground.setVisible(true);
-    this.topBarInnerLine.setVisible(true);
-    this.bottomBarInnerLine.setVisible(true);
-    this.leftBarInnerLine.setVisible(true);
-    this.rightBarInnerLine.setVisible(true);
-
     const topBarTargetY = this.UiDim.barHeight / 2;
-    const bottomBarTargetY = this.getCurrentGameHeight() - this.UiDim.barHeight / 2;
+    const bottomBarTargetY = getCurrentGameHeight(this) - this.UiDim.barHeight / 2;
 
     const topBarLineTargetY = this.UiDim.barHeight - this.UiDim.lineThickness / 2;
     const bottomBarLineTargetY =
-      this.getCurrentGameHeight() - this.UiDim.barHeight + this.UiDim.lineThickness / 2;
+      getCurrentGameHeight(this) - this.UiDim.barHeight + this.UiDim.lineThickness / 2;
 
     const leftBarTargetX = 90 - this.UiDim.barWidth / 2;
     const leftBarLineTargetX =
       leftBarTargetX + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
 
-    const rightBarTargetX = this.getCurrentGameWidth() - 90 + this.UiDim.barWidth / 2;
+    const rightBarTargetX = getCurrentGameWidth(this) - 90 + this.UiDim.barWidth / 2;
     const rightBarLineTargetX =
       rightBarTargetX - this.UiDim.barWidth / 2 + this.UiDim.lineThickness / 2;
 
@@ -301,16 +155,16 @@ export class PauseScene extends Phaser.Scene {
     const topBarHideY = -this.UiDim.barHeight / 2;
     const topBarLineHideY = -this.UiDim.barHeight + this.UiDim.lineThickness / 2;
 
-    const bottomBarHideY = this.getCurrentGameHeight() + this.UiDim.barHeight / 2;
+    const bottomBarHideY = getCurrentGameHeight(this) + this.UiDim.barHeight / 2;
     const bottomBarLineHideY =
-      this.getCurrentGameHeight() + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2;
+      getCurrentGameHeight(this) + this.UiDim.barHeight / 2 - this.UiDim.lineThickness / 2;
 
     const leftBarHideX = -this.UiDim.barWidth / 2;
     const leftBarLineHideX = -this.UiDim.barWidth + this.UiDim.lineThickness / 2;
 
-    const rightBarHideX = this.getCurrentGameWidth() + this.UiDim.barWidth / 2;
+    const rightBarHideX = getCurrentGameWidth(this) + this.UiDim.barWidth / 2;
     const rightBarLineHideX =
-      this.getCurrentGameWidth() + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
+      getCurrentGameWidth(this) + this.UiDim.barWidth / 2 - this.UiDim.lineThickness / 2;
 
     this.tweens.add({
       targets: this.topBar,
@@ -401,21 +255,5 @@ export class PauseScene extends Phaser.Scene {
       duration: 300,
       ease: "Linear",
     });
-  }
-
-  getCurrentGameWidth() {
-    return this.scale.width;
-  }
-
-  getCurrentGameHeight() {
-    return this.scale.height;
-  }
-
-  getCurrentGameCenterX() {
-    return this.getCurrentGameWidth() / 2;
-  }
-
-  getCurrentGameCenterY() {
-    return this.getCurrentGameHeight() / 2;
   }
 }
