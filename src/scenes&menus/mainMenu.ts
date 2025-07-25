@@ -5,10 +5,7 @@ export class MenuScene extends Phaser.Scene {
     super({ key: "MenuScene" });
   }
 
-  async create() {
-    /**
-     * Main camera
-     */
+  async create(): Promise<void> {
     const mc = this.cameras.main;
     const mainMenuCenterX = mc.centerX;
     const mainMenuCenterY = mc.centerY;
@@ -32,20 +29,14 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    const hasSeenTutorial = await window.myUniqueElectronAPI.getSetting("hasSeenTutorial", false);
+    const hasSeenTutorial = (await window.myUniqueElectronAPI.getSetting("hasSeenTutorial")) as boolean;
 
     startMnBtn.on("pointerdown", () => {
-      if (!hasSeenTutorial) {
         mc.fadeOut(1000, 0, 0, 0);
         mc.once("camerafadeoutcomplete", () => {
+          const targetScene = hasSeenTutorial ? "GameScene" : "TutorialScene";
           this.scene.start("TutorialScene");
         });
-      } else {
-        mc.fadeOut(1000, 0, 0, 0);
-        mc.once("camerafadeoutcomplete", () => {
-          this.scene.start("GameScene");
-        });
-      }
     });
 
     settingsMnBtn.on("pointerdown", () => {

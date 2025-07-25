@@ -1,22 +1,22 @@
 //tutorialScene
 
-import { createPlayerWithTag } from "../utils/playerUtils.js";
-import { gameHeight, gameWidth } from "../utils/screenUtils.js";
+import { createPlayerWithTag } from "../utils/playerUtils.ts";
+import { gameHeight, gameWidth } from "../utils/screenUtils.ts";
 
 export class TutorialScene extends Phaser.Scene {
-  player = null;
-  playerNameTag = null;
-  keys = null;
+  public player: Phaser.Physics.Arcade.Sprite & {update: (time: number, delta: number) => void} | null = null;
+  public playerNameTag: Phaser.GameObjects.Text | null = null;
+  public keys: any = null;
 
   constructor() {
     super({ key: "TutorialScene" });
   }
 
-  preload() {
+  preload(): void {
     this.load.image("player", "assets/Cat.png");
   }
 
-  create() {
+  create(): void {
     this.cameras.main.fadeIn(1000, 0, 0, 0);
     this.cameras.main.setBackgroundColor("rgb(192, 192, 192)");
 
@@ -26,13 +26,14 @@ export class TutorialScene extends Phaser.Scene {
     const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos, {
       initialSpeed: 150,
     });
+
     this.player = player;
     this.playerNameTag = playerNameTag;
 
     this.add
       .text(xPos, 100, "Welcome to the Tutorial!", {
         fontSize: "40px",
-        fill: "#000",
+        color: "#000",
         align: "center",
       })
       .setOrigin(0.5);
@@ -40,7 +41,7 @@ export class TutorialScene extends Phaser.Scene {
     this.add
       .text(xPos, yPos + 150, "Use WASD to move", {
         fontSize: "24px",
-        fill: "#000",
+        color: "#000",
         align: "center",
       })
       .setOrigin(0.5);
@@ -48,7 +49,7 @@ export class TutorialScene extends Phaser.Scene {
     const continueButton = this.add
       .text(xPos, gameHeight - 100, "Continue", {
         fontSize: "32px",
-        fill: "#fff",
+        color: "#fff",
         backgroundColor: "#007BFF",
         padding: { x: 20, y: 10 },
       })
@@ -66,7 +67,7 @@ export class TutorialScene extends Phaser.Scene {
     const skipTutorialButton = this.add
       .text(xPos, gameHeight - 50, "Skip Tutorial", {
         fontSize: "20px",
-        fill: "#999",
+        color: "#999",
         backgroundColor: "#333",
         padding: { x: 10, y: 5 },
       })
@@ -79,8 +80,8 @@ export class TutorialScene extends Phaser.Scene {
     });
   }
 
-  update(time, delta) {
-    if (this.player) {
+  update(time: number, delta: number) {
+    if (this.player && this.playerNameTag) {
       this.player.update(time, delta);
       const nameTagYOffset = this.player.displayHeight / 2 + 10;
       this.playerNameTag.x = this.player.x;
@@ -88,40 +89,3 @@ export class TutorialScene extends Phaser.Scene {
     }
   }
 }
-
-// export class TutorialScene2 extends Phaser.Scene {
-//   player = null;
-//   playerNameTag = null;
-//   keys = null;
-
-//   constructor() {
-//     super({ key: "TScene2" });
-//   }
-
-//   preload() {
-//     this.load.image("player", "assets/Cat.png");
-//   }
-
-//   create() {
-//     this.cameras.main.fadeIn(1000, 0, 0, 0);
-//     this.cameras.main.setBackgroundColor("rgb(192, 192, 192)");
-
-//     const xPos = this.cameras.main.centerX;
-//     const yPos = this.cameras.main.centerY;
-
-//     const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos, {
-//       initialSpeed: 150,
-//     });
-//     this.player = player;
-//     this.playerNameTag = playerNameTag;
-//   }
-
-//   update(time, delta) {
-//     if (this.player) {
-//       this.player.update(time, delta);
-//       const nameTagYOffset = this.player.displayHeight / 2 + 10;
-//       this.playerNameTag.x = this.player.x;
-//       this.playerNameTag.y = this.player.y - nameTagYOffset;
-//     }
-//   }
-// }

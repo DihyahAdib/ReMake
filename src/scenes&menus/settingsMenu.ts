@@ -1,9 +1,12 @@
 //settingsScene.js
-import { gameHeight, gameWidth } from "../utils/screenUtils.js";
+import Phaser from "phaser";
+import { gameHeight, gameWidth } from "../utils/screenUtils.ts";
 
-export const settingsButtonStyle = {
+const settingsButtonStyle: Phaser.Types.GameObjects.Text.TextStyle & {
+  padding: { x: number; y: number };
+} = {
   fontSize: "32px",
-  fill: "#FFFFFF",
+  color: "#FFFFFF",
   backgroundColor: "#444",
   padding: { x: 15, y: 10 },
   stroke: "#000000",
@@ -11,23 +14,20 @@ export const settingsButtonStyle = {
 };
 
 export class SettingScene extends Phaser.Scene {
-  previousSceneKey = null;
+  previousSceneKey: string | null = null;
+  public disableVSync: boolean = false;
+  public disableFullScreen: boolean = false;
+
+
+  public settingsMnBtnBack!: Phaser.GameObjects.Text;
+  public toggleVSyncButton!: Phaser.GameObjects.Text;
+  public toggleFullScreenButton!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: "SettingScene" });
-    this.disableVSync = false;
-    this.disableFullScreen = false;
   }
 
-  init(data) {
-    if (data && data.from) {
-      this.previousSceneKey = data.from;
-    } else {
-      this.previousSceneKey = null;
-    }
-  }
-
-  async create() {
+  async create(): Promise<void> {
     this.cameras.main.setBackgroundColor("#000");
 
     this.settingsMnBtnBack = this.add
@@ -48,7 +48,7 @@ export class SettingScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    this.disableVSync = await window.myUniqueElectronAPI.getSetting("disableVSync");
+    this.disableVSync = await window.myUniqueElectronAPI.getSetting("disableVSync") as boolean;
     this.updateVSyncButtonText();
 
     this.toggleVSyncButton.on("pointerdown", async () => {
@@ -65,23 +65,21 @@ export class SettingScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    this.disableFullScreen = await window.myUniqueElectronAPI.getSetting("disableFullScreen");
+    this.disableFullScreen = await window.myUniqueElectronAPI.getSetting("disableFullScreen") as boolean;
     this.updateFullScreenButtonText();
 
     this.toggleFullScreenButton.on("pointerdown", async () => {
       this.disableFullScreen = !this.disableFullScreen;
       this.updateFullScreenButtonText();
-
       await window.myUniqueElectronAPI.setSetting("disableFullScreen", this.disableFullScreen);
-
       window.myUniqueElectronAPI.toggleFullScreen(!this.disableFullScreen);
     });
   }
 
-  updateVSyncButtonText() {
+  public updateVSyncButtonText(): void {
     this.toggleVSyncButton.setText(`VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`);
   }
-  updateFullScreenButtonText() {
+  public updateFullScreenButtonText(): void {
     this.toggleFullScreenButton.setText(
       `FullScreen: ${this.disableFullScreen ? "Disabled" : "Enabled"}`
     );

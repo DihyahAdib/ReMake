@@ -1,0 +1,28 @@
+// tsconfig.json
+{
+    "compilerOptions": {
+        "outDir": "./dist-ts",
+        "module": "commonjs",
+        "target": "es2020",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "main.ts",
+        "preload.ts",
+        "src/**/*.ts",
+        "src/**/*.js"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "dist-ts"
+    ],
+    "typeRoots": [
+        "./node_modules",
+        "./node_modules/@develephant/types-phaser"
+    ]
+}

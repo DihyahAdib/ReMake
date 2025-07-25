@@ -1,5 +1,6 @@
 //gameScene.js
-import { Enemy } from "../enemy.js";
+import * as Phaser from 'phaser'
+import { Enemy } from "../enemy.ts";
 import {
   gameWidth,
   gameHeight,
@@ -8,11 +9,98 @@ import {
   rmProps,
 } from "../utils/screenUtils.js";
 import { createPlayerWithTag } from "../utils/playerUtils.js";
-import { Weapons } from "../weapons.js";
+import { Weapons } from "../weapons.ts";
 
-const { roomPaddingWidth, roomPaddingHeight, doorPaddingWidth, doorPaddingHeight } = rmProps;
+interface IRmProps {
+ roomPaddingWidth: number;
+ roomPaddingHeight:number;
+ doorPaddingWidth:number;
+ doorPaddingHeight:number;
+ leftRightOffset: number;
+ topBottomOffset: number;
+ doorThickness: number
+}
 
-const rmDim = {
+interface IRmDim {
+  innerRoomWidth: number;
+  innerRoomHeight: number;
+  roomOffsetX: number;
+  roomOffsetY: number;
+  doorWidth: number;
+  doorHeight: number;
+};
+
+// defining structs for the enemy and weapons
+interface IEnemyDefinition {
+  id: string;
+  position: {x: number, y: number}
+  speed: number;
+  damage: number;
+  health: number;
+  isDead: boolean; 
+  count: number;
+  rmkey: string
+}
+
+interface IWeaponDefinition {
+  id: string;
+  x: number;
+  y: number;
+  damage: number;
+  cooldown: number;
+  speed: number;
+  pickedUp: boolean;
+  rmkey: string
+}
+
+interface IPlayerSpawnPoint {
+  x: number;
+  y: number;
+}
+
+interface IRoomConnections {
+  right?: string;
+  left?: string;
+  up?: string;
+  down?: string;
+}
+
+interface IRoomData {
+  background: string;
+  connections: IRoomConnections;
+  playerSpawnPoints: {
+    right?: IPlayerSpawnPoint;
+    left?: IPlayerSpawnPoint;
+    up?: IPlayerSpawnPoint;
+    down?: IPlayerSpawnPoint;
+    default?: IPlayerSpawnPoint;
+  };
+  enemies: IEnemyDefinition[];
+  weapons: IWeaponDefinition[];
+  items: any[]; //define this later 
+}
+
+interface IPlayer extends Phaser.Physics.Arcade.Sprite {
+  health: number;
+  mxHealth: number;
+  isDead: boolean;
+  equippedWeapon: IWeapon | null;
+  inventory: IWeaponDefinition[];
+  update: (time: number, delta: number) => void;
+  takeDamage: (amount: number) => void;
+}
+
+interface IWeapon extends Phaser.Physics.Arcade.Sprite {
+  id: string;
+  damage: number;
+  cooldown: number;
+  speed: number;
+  weaponDefinition: IWeaponDefinition;
+}
+
+const { roomPaddingWidth, roomPaddingHeight, doorPaddingWidth, doorPaddingHeight } = rmProps as IRmProps;
+
+const rmDim: IRmDim = {
   innerRoomWidth: gameWidth - roomPaddingWidth,
   innerRoomHeight: gameHeight - roomPaddingHeight,
   roomOffsetX: roomPaddingWidth / 2,
@@ -22,25 +110,24 @@ const rmDim = {
 };
 
 export class GameScene extends Phaser.Scene {
-  enemyGroup = null;
-  doorGroup = null;
-  roomContentGroup = null;
-  weaponGroup = null;
-  player = null;
-  playerNameTag = null;
-  playerHpText = null;
-  fpsText = null;
-  escText = null;
-  keys = null;
-  currentRoomKey = null;
-  debugGraphics = null;
-  isDevelopmentMode = false;
+  enemyGroup!: Phaser.Physics.Arcade.Group;
+  doorGroup!: Phaser.Physics.Arcade.StaticGroup;
+  roomContentGroup!: Phaser.GameObjects.Group;
+  weaponGroup!: Phaser.Physics.Arcade.Group;
+  player!: IPlayer;
+  playerNameTag!: Phaser.GameObjects.Text;
+  playerHpText!: Phaser.GameObjects.Text;
+  fpsText!: Phaser.GameObjects.Text;
+  escText!: Phaser.GameObjects.Text;
+  keys!: { [key: string]: Phaser.Input.Keyboard.Key }; 
+  currentRoomKey: string | null = null;
+  debugGraphics: Phaser.GameObjects.Graphics | null = null;
+  isDevelopmentMode: boolean = false;
 
-  enemyStructs = [
+  enemyStructs: IEnemyDefinition[] = [
     {
       id: "beginner mob 1",
-      xOffset: 200,
-      yOffset: -200,
+      position: {x: 200, y: 200},
       speed: 100,
       damage: 10,
       health: 100,
@@ -48,10 +135,10 @@ export class GameScene extends Phaser.Scene {
       count: 2,
       rmkey: "StartingRoom",
     },
+
     {
       id: "beginner mob 2",
-      xOffset: 400,
-      yOffset: -300,
+      position: {x: 400, y: -300},
       speed: 120,
       damage: 10,
       health: 100,
@@ -61,7 +148,7 @@ export class GameScene extends Phaser.Scene {
     },
   ];
 
-  weaponStructs = [
+  weaponStructs: IWeaponDefinition[] = [
     {
       id: "Basic Shooter",
       x: 200,
@@ -74,14 +161,14 @@ export class GameScene extends Phaser.Scene {
     },
   ];
 
-  rooms = {};
+  rooms: { [key: string]: IRoomData} = {};
 
   constructor() {
     super({ key: "GameScene" });
     this.initializeRoomData();
   }
 
-  initializeRoomData() {
+  initializeRoomData(): void {
     this.rooms = {
       StartingRoom: {
         background: "R1_bg",
@@ -149,7 +236,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  preload() {
+  preload(): void {
     this.load.image("player", "assets/Cat.png");
     this.load.image("enemy", "assets/Enemy.png");
     this.load.image("basicShooterImg", "assets/sword.png");
@@ -158,20 +245,20 @@ export class GameScene extends Phaser.Scene {
     this.load.image("door_trigger", "assets/door.png");
   }
 
-  async create() {
+  async create(): Promise<void> {
     this.cameras.main.fadeIn(400, 0, 0, 0);
 
     this.isDevelopmentMode = await window.myUniqueElectronAPI.isDevelopment();
     console.log("GameScene isDevelopmentMode:", this.isDevelopmentMode);
 
-    this.keys = this.input.keyboard.addKeys({
+    this.keys = this.input.keyboard!.addKeys({
       Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
-    });
+    }) as { Esc: Phaser.Input.Keyboard.Key };
 
     this.escText = this.add
       .text(windowCenterX, windowCenterY + 450, "Press Esc to pause the game", {
         font: "16px Arial",
-        fill: "rgba(0, 0, 0, 0.4)",
+        color: "rgba(0, 0, 0, 0.4)",
       })
       .setOrigin(0.5)
       .setScrollFactor(0);
@@ -180,24 +267,24 @@ export class GameScene extends Phaser.Scene {
     const yPos = this.cameras.main.centerY;
 
     const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos);
-    this.player = player;
-    this.playerNameTag = playerNameTag;
+    this.player = player as IPlayer;
+    this.playerNameTag = playerNameTag as Phaser.GameObjects.Text;
 
-    this.enemyGroup = this.physics.add.group();
-    this.weaponGroup = this.physics.add.group();
-    this.roomContentGroup = this.add.group();
-    this.doorGroup = this.physics.add.staticGroup();
+    this.enemyGroup = this.physics.add.group() as Phaser.Physics.Arcade.Group;
+    this.weaponGroup = this.physics.add.group() as Phaser.Physics.Arcade.Group;
+    this.roomContentGroup = this.add.group()as Phaser.GameObjects.Group;
+    this.doorGroup = this.physics.add.staticGroup() as Phaser.Physics.Arcade.StaticGroup;
 
     this.playerHpText = this.add
       .text(128, 92, `HP: ${this.player.health}`, {
         font: "16px Arial",
-        fill: "#ffffff",
+        color: "#ffffff",
       })
       .setScrollFactor(0);
     this.fpsText = this.add
       .text(128, 72, "FPS:", {
         font: "16px Arial",
-        fill: "#ffffff",
+        color: "#ffffff",
       })
       .setScrollFactor(0);
 
@@ -207,7 +294,7 @@ export class GameScene extends Phaser.Scene {
     this.updateDebugVisuals();
   }
 
-  update(time, delta) {
+  update(time: number, delta: number): void {
     if (!this.keys || !this.player || !this.playerHpText || !this.fpsText || !this.playerNameTag) {
       return;
     }
@@ -227,8 +314,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.enemyGroup) {
-      this.enemyGroup.children.each(function (enemy) {
-        if (enemy.active) {
+      this.enemyGroup.children.each(function (enemy: Phaser.GameObjects.GameObject) {
+        if (enemy instanceof Enemy && enemy.active) {
           enemy.update(time, delta);
         }
       }, this);
@@ -242,13 +329,13 @@ export class GameScene extends Phaser.Scene {
     this.fpsText.setText(`FPS: ${Math.floor(this.game.loop.actualFps)}`);
   }
 
-  updateDebugVisuals() {
+  updateDebugVisuals(): void {
     if (this.isDevelopmentMode) {
       if (!this.debugGraphics) {
         this.debugGraphics = this.add.graphics({
           lineStyle: { width: 2, color: 0x00ff00, alpha: 1 },
         });
-        this.debugGraphics.setDepth(999);
+        this.debugGraphics.setDepth(100);
       }
       this.debugGraphics.clear();
       this.debugGraphics.strokeRect(
@@ -279,8 +366,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.enemyGroup) {
-      this.enemyGroup.children.each(function (enemy) {
-        if (enemy.body) {
+      this.enemyGroup.children.each(function (enemy: Phaser.GameObjects.GameObject) {
+        if (enemy instanceof Enemy && enemy.body) {
           enemy.body.debugShowBody = this.isDevelopmentMode;
           enemy.body.debugShowVelocity = this.isDevelopmentMode;
         }
@@ -288,19 +375,20 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  loadRoom(roomKey, entryDirection = null) {
+  loadRoom(roomKey: string, entryDirection: string | null = null): void {
     if (this.roomContentGroup) this.roomContentGroup.clear(true, true);
     if (this.doorGroup) this.doorGroup.clear(true, true);
     if (this.enemyGroup) this.enemyGroup.clear(true, true);
     if (this.weaponGroup) this.weaponGroup.clear(true, true);
 
-    this.roomContentGroup = this.add.group();
-    this.weaponGroup = this.physics.add.group();
-    this.doorGroup = this.physics.add.staticGroup();
-    this.enemyGroup = this.physics.add.group();
+    this.roomContentGroup = this.add.group() as Phaser.GameObjects.Group;
+    this.weaponGroup = this.physics.add.group() as Phaser.Physics.Arcade.Group;
+    this.doorGroup = this.physics.add.staticGroup() as Phaser.Physics.Arcade.StaticGroup;
+    this.enemyGroup = this.physics.add.group() as Phaser.Physics.Arcade.Group;
 
     this.handleItemPickUp();
-    const roomData = this.rooms[roomKey];
+
+    const roomData: IRoomData = this.rooms[roomKey];
     if (!roomData) {
       console.error(`Room data not found for key: ${roomKey}`);
       return;
@@ -328,7 +416,8 @@ export class GameScene extends Phaser.Scene {
 
     this.updateDebugVisuals();
 
-    let spawnPoint = roomData.playerSpawnPoints[entryDirection];
+    let spawnPoint: IPlayerSpawnPoint = roomData.playerSpawnPoints[entryDirection as keyof IRoomConnections] || roomData.playerSpawnPoints.default;
+
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
         x: windowCenterX,
@@ -366,7 +455,7 @@ export class GameScene extends Phaser.Scene {
           !weaponDef.pickedUp &&
           !(this.player.equippedWeapon && this.player.equippedWeapon.id === weaponDef.id)
         ) {
-          const newWeapon = Weapons.createWeaponFromDef(this, weaponDef);
+          const newWeapon = Weapons.createWeaponFromDef(this, weaponDef) as IWeapon;
           newWeapon.weaponDefinition = weaponDef;
           newWeapon.setScale(0.15);
           newWeapon.setDepth(0);
@@ -376,9 +465,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (roomData.enemies && roomData.enemies.length > 0) {
-      roomData.enemies.forEach((enemyDef) => {
+      roomData.enemies.forEach((enemyDef: IEnemyDefinition) => {
         if (!enemyDef.isDead) {
-          const newEnemy = Enemy.createEnemyFromDef(this, enemyDef);
+          const newEnemy = Enemy.createEnemyFromDef(this, enemyDef.position.x, enemyDef.position.y, "enemy", undefined, enemyDef.id, enemyDef.speed, enemyDef.damage, enemyDef.health, enemyDef.isDead, enemyDef.count) as Enemy;
+          newEnemy.enemyDefinition = enemyDef;
           this.enemyGroup.add(newEnemy);
         }
       });
@@ -386,15 +476,15 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(
         this.player,
         this.enemyGroup,
-        this.handlePlayerEnemyCollision,
-        null,
+        this.handlePlayerEnemyCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+        undefined,
         this
       );
       this.physics.add.overlap(
         this.player,
         this.enemyGroup,
-        this.handlePlayerEnemyCollision,
-        null,
+        this.handlePlayerEnemyCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+        undefined,
         this
       );
       this.physics.add.collider(this.enemyGroup, this.enemyGroup);
@@ -408,8 +498,11 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.overlap(
         this.player.equippedWeapon.projectileGroup,
         this.enemyGroup,
-        (projectile, enemy) => {
-          enemy.takeDamage(this.player.equippedWeapon.damage);
+        (projectile: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) => {
+          if (enemy instanceof Enemy) {
+
+            enemy.takeDamage(this.player.equippedWeapon!.damage);
+          }
           projectile.destroy();
         }
       );
@@ -417,11 +510,11 @@ export class GameScene extends Phaser.Scene {
     console.log(`Loaded room: ${roomKey}`);
   }
 
-  handlePlayerEnemyCollision(player, enemy) {
+  handlePlayerEnemyCollision(player: IPlayer, enemy: Enemy): void {
     player.takeDamage(enemy.damage);
   }
 
-  createRoomDoors(connections, roomOffsetX, roomOffsetY, innerRoomWidth, innerRoomHeight) {
+  createRoomDoors(connections: IRoomConnections, roomOffsetX: number, roomOffsetY:number , innerRoomWidth: number, innerRoomHeight: number): void {
     const roomLeftEdge = roomOffsetX;
     const roomRightEdge = roomOffsetX + innerRoomWidth;
     const roomTopEdge = roomOffsetY;
@@ -430,76 +523,74 @@ export class GameScene extends Phaser.Scene {
     const roomCenterY = roomOffsetY + innerRoomHeight / 2;
 
     // Right Door
-    if (connections.right) {
+    const createDoor = (x: number, y: number, displayWidth: number, displayHeight: number, targetRoom: number, entryDirection: string) => {
       const door = this.doorGroup.create(
-        roomRightEdge - rmProps.doorThickness / 2,
-        roomCenterY,
+        x,
+        y, 
         "door_trigger"
-      );
+      ) as Phaser.Physics.Arcade.Sprite;
       door.setVisible(true);
       door.setOrigin(0.5);
-      door.displayWidth = rmProps.doorThickness;
-      door.displayHeight = rmDim.doorHeight;
-      door.setData("targetRoom", connections.right);
-      door.setData("entryDirection", "left");
-      door.body.allowGravity = false;
+      door.displayWidth = displayWidth;
+      door.displayHeight = displayHeight;
+      door.setData("targetRoom", targetRoom);
+      door.setData("entryDirection", entryDirection);
+      if (door.body isntanceof Phaser.Physics.Arcade.Body) {
+        door.body.setAllowGravity(false);
+      }
       door.refreshBody();
+      return door;
+    }
+    if (connections.right) {
+      createDoor(
+        roomRightEdge - doorThickness / 2,
+        roomCenterY,
+        doorThickness,
+        rmDim.doorHeight,
+        connections.right,
+        "left"
+      );
     }
     // Left Door
     if (connections.left) {
-      const door = this.doorGroup.create(
-        roomLeftEdge + rmProps.doorThickness / 2,
+      createDoor(
+        roomLeftEdge + doorThickness / 2, 
         roomCenterY,
-        "door_trigger"
+        doorThickness, 
+        rmDim.doorHeight,
+        connections.left,
+        "right"
       );
-      door.setVisible(true);
-      door.setOrigin(0.5);
-      door.displayWidth = rmProps.doorThickness;
-      door.displayHeight = rmDim.doorHeight;
-      door.setData("targetRoom", connections.left);
-      door.setData("entryDirection", "right");
-      door.body.allowGravity = false;
-      door.refreshBody();
     }
     // Up Door
     if (connections.up) {
-      const door = this.doorGroup.create(
+      createDoor(
         roomCenterX,
-        roomTopEdge + rmProps.doorThickness / 2,
-        "door_trigger"
+        roomTopEdge + doorThickness / 2,
+        rmDim.doorWidth,
+        doorThickness,
+        connections.up,
+        "down"
       );
-      door.setVisible(true);
-      door.setOrigin(0.5);
-      door.displayWidth = rmDim.doorWidth;
-      door.displayHeight = rmProps.doorThickness;
-      door.setData("targetRoom", connections.up);
-      door.setData("entryDirection", "down");
-      door.body.allowGravity = false;
-      door.refreshBody();
     }
     // Down Door
     if (connections.down) {
-      const door = this.doorGroup.create(
+      createDoor(
         roomCenterX,
-        roomBottomEdge - rmProps.doorThickness / 2,
-        "door_trigger"
+        roomBottomEdge - doorThickness / 2,
+        rmDim.doorWidth,
+        doorThickness,
+        connections.down,
+        "up"
       );
-      door.setVisible(true);
-      door.setOrigin(0.5);
-      door.displayWidth = rmDim.doorWidth;
-      door.displayHeight = rmProps.doorThickness;
-      door.setData("targetRoom", connections.down);
-      door.setData("entryDirection", "up");
-      door.body.allowGravity = false;
-      door.refreshBody();
     }
 
-    this.physics.add.overlap(this.player, this.doorGroup, this.handleRoomTransition, null, this);
+    this.physics.add.overlap(this.player, this.doorGroup, this.handleRoomTransition as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
   }
 
-  handleRoomTransition(player, door) {
-    const targetRoomKey = door.getData("targetRoom");
-    const entryDirection = door.getData("entryDirection");
+  handleRoomTransition(player: IPlayer, door: Phaser.GameObjects.GameObject): void {
+    const targetRoomKey: string = door.getData("targetRoom");
+    const entryDirection: string = door.getData("entryDirection");
 
     if (targetRoomKey && this.currentRoomKey !== targetRoomKey) {
       console.log(`Entering to room: ${targetRoomKey} (entering from ${entryDirection})`);
@@ -515,21 +606,25 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  handleItemPickUp() {
-    this.physics.add.overlap(this.player, this.weaponGroup, this.onPlayerPickUpWeapon, null, this);
+  handleItemPickUp(): void {
+    this.physics.add.overlap(this.player, this.weaponGroup, this.onPlayerPickUpWeapon as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
   }
 
-  onPlayerPickUpWeapon(player, weapon) {
+  onPlayerPickUpWeapon(player: IPlayer, weapon: IWeapon): void {
     player.inventory.push({
       id: weapon.id,
+      x: weapon.x,
+      y: weapon.y,
       damage: weapon.damage,
       cooldown: weapon.cooldown,
       speed: weapon.speed,
+      pickedUp: true,
+      rmkey: this.currentRoomKey || "",
     });
 
     this.weaponGroup.remove(weapon, false, false);
 
-    const currentRoomData = this.rooms[this.currentRoomKey];
+    const currentRoomData = this.rooms[this.currentRoomKey!];
     if (currentRoomData && currentRoomData.weapons) {
       const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
       if (pickedUpWeaponDef) {
@@ -550,31 +645,17 @@ export class GameScene extends Phaser.Scene {
       this.player.equippedWeapon.y = this.player.y;
     }
 
-    if (this.player.equippedWeapon.projectileGroup) {
+    if (this.player.equippedWeapon && this.player.equippedWeapon.projectileGroup) {
       this.physics.add.overlap(
         this.player.equippedWeapon.projectileGroup,
         this.enemyGroup,
-        (projectile, enemy) => {
-          enemy.takeDamage(this.player.equippedWeapon.damage);
+        (projectile: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) => {
+          if (enemy instanceof Enemy) {
+            enemy.takeDamage(this.player.equippedWeapon!.damage);
+          }
           projectile.destroy();
         }
       );
     }
-  }
-
-  getCurrentGameWidth() {
-    return this.scale.width;
-  }
-
-  getCurrentGameHeight() {
-    return this.scale.height;
-  }
-
-  getCurrentGameCenterX() {
-    return this.getCurrentGameWidth() / 2;
-  }
-
-  getCurrentGameCenterY() {
-    return this.getCurrentGameHeight() / 2;
   }
 }

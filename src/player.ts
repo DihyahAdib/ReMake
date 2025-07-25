@@ -1,49 +1,65 @@
 //player.js
+import Phaser from "phaser";
+import { Weapons } from "./weapons.ts";
+
+type DirectionKeys = {
+  up: Phaser.Input.Keyboard.Key;
+  down: Phaser.Input.Keyboard.Key;
+  left: Phaser.Input.Keyboard.Key;
+  right: Phaser.Input.Keyboard.Key;
+}
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
+  public currentScene: Phaser.Scene;
+  public attackDamage: number;
+  public speed: number;
+  public health: number;
+  public mxHealth: number = 100;
+  public currentLevel: number;
+  public playerName: string;
+  public isDead: boolean = false;
+  public canDealDamage: boolean = true;
+  public canTakeDamage: boolean = true;
+  public damageCooldown: number = 1000;
+  public inventory: unknown[] = [];
+  public keys: DirectionKeys;
+  public equippedWeapon?: Weapons;
+
   constructor(
-    scene,
-    x,
-    y,
-    texture,
-    frame,
-    attackDamage,
-    initialSpeed,
-    initialHealth,
-    level,
-    nameTag
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    texture: string,
+    frame: string | number,
+    attackDamage: number,
+    initialSpeed: number,
+    initialHealth: number,
+    level: number,
+    nameTag: string
   ) {
     super(scene, x, y, texture, frame);
+
+    this.currentScene = scene;
+    this.attackDamage = attackDamage;
+    this.speed = initialSpeed;
+    this.health = initialHealth;
+    this.currentLevel = level;
+    this.playerName = nameTag;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.setCollideWorldBounds(true);
     this.setOrigin(0.5);
-    this.body.setDamping(true);
-    this.body.setDrag(100);
+    (this.body as Phaser.Physics.Arcade.Body).setDamping(true);
+    (this.body as Phaser.Physics.Arcade.Body).setDrag(100);
 
-    this.currentScene = scene;
-    this.attackDamage = attackDamage;
-    this.speed = initialSpeed;
-    this.health = initialHealth;
-    this.mxHealth = 100;
-    this.currentLevel = level;
-    this.playerName = nameTag;
-
-    this.isDead = false;
-    this.canDealDamage = true;
-    this.canTakeDamage = true;
-    this.damageCooldown = 1000; //enemy dmg tick
-
-    this.inventory = [];
-
-    this.keys = this.currentScene.input.keyboard.addKeys({
+    this.keys = this.currentScene!.input!.keyboard!.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
-    });
+    }) as DirectionKeys;
 
     this.currentScene.input.on("pointerdown", () => {
       if (this.equippedWeapon) {
@@ -52,13 +68,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  update(time, delta) {
+  update(time: number, delta: number): void {
     if (this.isDead) return;
     const deltaSec = delta / 1000;
     this.handleMovement(deltaSec);
   }
 
-  handleMovement() {
+  handleMovement(deltaSec: number): void {
     let moveX = 0;
     let moveY = 0;
 
@@ -68,7 +84,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.keys.right.isDown) moveX = 1;
 
     if (moveX !== 0 && moveY !== 0) {
-      const factor = Math.sqrt(0.5);
+      const factor = Math.SQRT1_2;
       moveX *= factor;
       moveY *= factor;
     }
@@ -76,7 +92,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(moveX * this.speed, moveY * this.speed);
   }
 
-  takeDamage(amount) {
+  takeDamage(amount: number): void {
     if (!this.canTakeDamage || this.isDead) return;
 
     this.health -= amount;
@@ -101,9 +117,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     );
   }
 
-  die() {
+  public die() {
     this.isDead = true;
-    this.body.setVelocity(0, 0);
+    this.setVelocity(0, 0);
     this.disableBody(true, true);
+  }
+
+  setWeapon(weapon: Weapons): void {
+    this.equippedWeapon = weapon;
+  }
+
+  getWeapon(): Weapons | undefined {
+    return this.equippedWeapon;
   }
 }

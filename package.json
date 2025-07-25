@@ -3,31 +3,39 @@
   "prettier": {
     "printWidth": 100
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Phaser game built with Electron",
-  "main": "main.js",
+  "main": "dist-ts/main.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development electron .",
-    "start-win": "set NODE_ENV=development && electron .",
-    "start-ps": "$env:NODE_ENV='development'; electron .",
-    "dist": "electron-builder --dir",
-    "pack": "electron-builder --dir",
-    "build": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "start": "npm run build-ts && cross-env NODE_ENV=development electron .",
+    "start-win": "npm run build-ts && set NODE_ENV=development && electron .",
+    "start-ps": "npm run build-ts && $env:NODE_ENV='development'; electron .",
+    "dist": "npm run build-ts && electron-builder --dir",
+    "pack": "npm run build-ts && electron-builder --dir",
+    "build-ts": "tsc && node scripts/copy-assets.js",
+    "build": "npm run build-ts && electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "clean-dist-ts": "rimraf dist-ts",
+    "watch-ts": "tsc --watch"
   },
   "keywords": [],
   "author": "Dihyah Adib",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@develephant/types-phaser": "^1.0.1",
     "electron-store": "^8.1.0",
     "phaser": "^3.90.0"
   },
   "devDependencies": {
-    "electron": "^36.4.0",
+    "@types/node": "^24.1.0",
     "cross-env": "^7.0.3",
+    "electron": "^36.4.0",
     "electron-builder": "^26.0.12",
-    "electron-reloader": "^1.2.3"
+    "electron-reloader": "^1.2.3",
+    "fs-extra": "^11.3.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
   },
   "build": {
     "appId": "com.NoCapStudios.remakegame",
@@ -37,7 +45,10 @@
       "buildResources": "build"
     },
     "files": [
-      "**/*",
+      "dist-ts/**/*",
+      "src/index.html",
+      "src/css/**/*",
+      "src/assets/**/*",
       "!node_modules/electron",
       "!node_modules/electron-builder",
       "!node_modules/.bin",

@@ -83,7 +83,7 @@ REMAKE/
 │   └── weapons.js            # Weapon class
 ├── assets/                   # Game assets (images, sounds, etc.)
 ├── index.html                # Main HTML file for the game
-├── main.js                   # Electron main process script
+├── main.ts                   # Electron main process script
 ├── preload.js                # Electron preload script for IPC
 └── package.json              # Project configuration and build settings
 ```
