@@ -1,39 +1,44 @@
 const fs = require("fs-extra");
 const path = require("path");
 
-const sourceDir = path.resolve(__dirname, "..", "src");
-const destDir = path.resolve(__dirname, "..", "dist-ts", "src");
-const nodeModuleDir = path.resolve(__dirname, "..", "node_modules");
+const projectRoot = path.resolve(__dirname, "..");
+const sourceDir = path.join(projectRoot, "src"); // Original source (e.g., src/index.html, src/css)
+const distTsDir = path.join(projectRoot, "dist-ts"); // The root of your compiled output
+const distTsSrcDir = path.join(distTsDir, "src"); // Where index.html and its local assets should reside in dist-ts
+const nodeModuleDir = path.join(projectRoot, "node_modules");
 
 try {
-  fs.ensureDirSync(destDir);
+  // Ensure target directories exist
+  fs.ensureDirSync(distTsDir);
+  fs.ensureDirSync(distTsSrcDir); // Ensure dist-ts/src exists for copied content
 
-  fs.copySync(path.join(sourceDir, "index.html"), path.join(destDir, "index.html"));
+  // --- Copying static assets and HTML from src to dist-ts/src ---
+  // These files are NOT processed by tsc, so they need to be explicitly copied.
+  fs.copySync(path.join(sourceDir, "index.html"), path.join(distTsSrcDir, "index.html"));
   console.log("Copied index.html");
 
   const cssSource = path.join(sourceDir, "css");
-  const cssDest = path.join(destDir, "css");
+  const cssDest = path.join(distTsSrcDir, "css");
   if (fs.existsSync(cssSource)) {
     fs.copySync(cssSource, cssDest, { overwrite: true });
     console.log("Copied css folder");
   }
 
   const assetsSource = path.join(sourceDir, "assets");
-  const assetsDest = path.join(destDir, "assets");
+  const assetsDest = path.join(distTsSrcDir, "assets");
   if (fs.existsSync(assetsSource)) {
     fs.copySync(assetsSource, assetsDest, { overwrite: true });
     console.log("Copied assets folder");
   }
-
   const phaserSource = path.join(nodeModuleDir, "phaser", "dist", "phaser.min.js");
-  const phaserDestDir = path.join(destDir, "lib");
+  const phaserDestDir = path.join(distTsSrcDir, "lib"); // Phaser goes into dist-ts/src/lib
   const phaserDest = path.join(phaserDestDir, "phaser.min.js");
 
   fs.ensureDirSync(phaserDestDir);
   fs.copySync(phaserSource, phaserDest, { overwrite: true });
   console.log("Copied phaser.min.js");
 
-  console.log("Assets copied successfully!");
+  console.log("Static assets copied successfully! Compiled JS handled by tsc.");
 } catch (er) {
   console.error("Error copying assets:", er);
   process.exit(1);

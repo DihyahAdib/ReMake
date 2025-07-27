@@ -1,8 +1,5 @@
-"use strict";
 //mainMenu.js
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MenuScene = void 0;
-class MenuScene extends Phaser.Scene {
+export class MenuScene extends Phaser.Scene {
     constructor() {
         super({ key: "MenuScene" });
     }
@@ -40,4 +37,3 @@ class MenuScene extends Phaser.Scene {
         });
     }
 }
-exports.MenuScene = MenuScene;

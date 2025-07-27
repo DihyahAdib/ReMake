@@ -3,7 +3,7 @@
   "prettier": {
     "printWidth": 100
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A Phaser game built with Electron",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "start-ps": "npm run build-ts && $env:NODE_ENV='development'; electron .",
     "dist": "npm run build-ts && electron-builder --dir",
     "pack": "npm run build-ts && electron-builder --dir",
-    "build-ts": "tsc && node scripts/copy-assets.js",
+    "build-ts": "tsc -p tsconfig.json && tsc -p src/tsconfig.renderer.json && node scripts/copy-assets.js",
     "build": "npm run build-ts && electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "clean-dist-ts": "rimraf dist-ts",

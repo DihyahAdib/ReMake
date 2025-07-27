@@ -1,8 +1,5 @@
-"use strict";
 //settingsScene.js
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettingScene = void 0;
-const screenUtils_1 = require("../utils/screenUtils");
+import { winProps } from "../utils/screenUtils";
 const settingsButtonStyle = {
     fontSize: "32px",
     color: "#FFFFFF",
@@ -11,7 +8,7 @@ const settingsButtonStyle = {
     stroke: "#000000",
     strokeThickness: 2,
 };
-class SettingScene extends Phaser.Scene {
+export class SettingScene extends Phaser.Scene {
     constructor() {
         super({ key: "SettingScene" });
         this.previousSceneKey = null;
@@ -34,7 +31,7 @@ class SettingScene extends Phaser.Scene {
         });
         // --- VSync Toggle ---
         this.toggleVSyncButton = this.add
-            .text(screenUtils_1.winProps.gameWidth / 2, screenUtils_1.winProps.gameHeight / 2, "", settingsButtonStyle)
+            .text(winProps.gameWidth / 2, winProps.gameHeight / 2, "", settingsButtonStyle)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
         this.disableVSync = await window.myUniqueElectronAPI.getSetting("disableVSync");
@@ -47,7 +44,7 @@ class SettingScene extends Phaser.Scene {
         });
         // --- FullScreen Toggle ---
         this.toggleFullScreenButton = this.add
-            .text(screenUtils_1.winProps.gameWidth / 2, 450, "", settingsButtonStyle)
+            .text(winProps.gameWidth / 2, 450, "", settingsButtonStyle)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
         this.disableFullScreen = await window.myUniqueElectronAPI.getSetting("disableFullScreen");
@@ -66,4 +63,3 @@ class SettingScene extends Phaser.Scene {
         this.toggleFullScreenButton.setText(`FullScreen: ${this.disableFullScreen ? "Disabled" : "Enabled"}`);
     }
 }
-exports.SettingScene = SettingScene;

@@ -1,0 +1,22 @@
+// src/tsconfig.renderer.json
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "esnext", // Key change: Compile to ES Modules
+        "outDir": "../dist-ts/src", // Output to dist-ts/src
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowImportingTsExtensions": false,
+        "moduleResolution": "node"
+    },
+    "include": [
+        "**/*.ts" // Include all TypeScript files in src
+    ],
+    "exclude": [
+        "../node_modules",
+        "../dist",
+        "../dist-ts"
+    ]
+}

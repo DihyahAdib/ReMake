@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Enemy = void 0;
-class Enemy extends Phaser.Physics.Arcade.Sprite {
+export class Enemy extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, texture, frame, id, position, enemySpeed, enemyDamage, enemyHealth, isEnemyDead, enemyAmount, roomKeys) {
         super(scene, position.x, position.y, texture, frame);
         scene.add.existing(this);
@@ -135,4 +132,3 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         return enemy;
     }
 }
-exports.Enemy = Enemy;

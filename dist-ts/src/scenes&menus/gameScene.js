@@ -1,47 +1,11 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameScene = void 0;
 //gameScene.js
-const Phaser = __importStar(require("phaser"));
-const screenUtils_js_1 = require("../utils/screenUtils.js");
-const enemy_1 = require("../enemy");
-const weapons_1 = require("../weapons");
-const player_1 = require("../player");
-const roomDim = (0, screenUtils_js_1.getRoomDimensions)();
-class GameScene extends Phaser.Scene {
+import * as Phaser from 'phaser';
+import { winProps, rmProps, getRoomDimensions } from "../utils/screenUtils.js";
+import { Enemy } from "../enemy";
+import { Weapons } from "../weapons";
+import { createPlayerWithTag } from '../player';
+const roomDim = getRoomDimensions();
+export class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: "GameScene" });
         this.currentRoomKey = null;
@@ -95,8 +59,8 @@ class GameScene extends Phaser.Scene {
                     right: "room2",
                 },
                 playerSpawnPoints: {
-                    right: { x: screenUtils_js_1.winProps.gameWidth - screenUtils_js_1.rmProps.leftRightOffset, y: screenUtils_js_1.winProps.windowCenterY },
-                    default: { x: screenUtils_js_1.winProps.windowCenterX, y: screenUtils_js_1.winProps.windowCenterY + 50 },
+                    right: { x: winProps.gameWidth - rmProps.leftRightOffset, y: winProps.windowCenterY },
+                    default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
                 },
                 enemies: [],
                 weapons: [],
@@ -109,9 +73,9 @@ class GameScene extends Phaser.Scene {
                     up: "room3",
                 },
                 playerSpawnPoints: {
-                    left: { x: screenUtils_js_1.rmProps.leftRightOffset, y: screenUtils_js_1.winProps.windowCenterY },
-                    up: { x: screenUtils_js_1.winProps.windowCenterX, y: screenUtils_js_1.rmProps.topBottomOffset },
-                    default: { x: screenUtils_js_1.winProps.windowCenterX, y: screenUtils_js_1.winProps.windowCenterY + 50 },
+                    left: { x: rmProps.leftRightOffset, y: winProps.windowCenterY },
+                    up: { x: winProps.windowCenterX, y: rmProps.topBottomOffset },
+                    default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
                 },
                 enemies: [],
                 weapons: [],
@@ -124,10 +88,10 @@ class GameScene extends Phaser.Scene {
                 },
                 playerSpawnPoints: {
                     down: {
-                        x: screenUtils_js_1.winProps.windowCenterX,
-                        y: screenUtils_js_1.winProps.gameHeight - screenUtils_js_1.rmProps.topBottomOffset,
+                        x: winProps.windowCenterX,
+                        y: winProps.gameHeight - rmProps.topBottomOffset,
                     },
-                    default: { x: screenUtils_js_1.winProps.windowCenterX, y: screenUtils_js_1.winProps.windowCenterY + 50 },
+                    default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
                 },
                 enemies: [],
                 weapons: [],
@@ -165,7 +129,7 @@ class GameScene extends Phaser.Scene {
             Esc: Phaser.Input.Keyboard.KeyCodes.ESC,
         });
         this.escText = this.add
-            .text(screenUtils_js_1.winProps.windowCenterX, screenUtils_js_1.winProps.windowCenterY + 450, "Press Esc to pause the game", {
+            .text(winProps.windowCenterX, winProps.windowCenterY + 450, "Press Esc to pause the game", {
             font: "16px Arial",
             color: "rgba(0, 0, 0, 0.4)",
         })
@@ -173,7 +137,7 @@ class GameScene extends Phaser.Scene {
             .setScrollFactor(0);
         const xPos = this.cameras.main.centerX;
         const yPos = this.cameras.main.centerY;
-        const { player, playerNameTag } = (0, player_1.createPlayerWithTag)(this, xPos, yPos);
+        const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos);
         this.player = player;
         this.playerNameTag = playerNameTag;
         this.enemyGroup = this.physics.add.group();
@@ -214,7 +178,7 @@ class GameScene extends Phaser.Scene {
         }
         if (this.enemyGroup) {
             this.enemyGroup.children.each(function (enemy) {
-                if (enemy instanceof enemy_1.Enemy && enemy.active) {
+                if (enemy instanceof Enemy && enemy.active) {
                     enemy.update(time, delta);
                 }
                 return true;
@@ -257,7 +221,7 @@ class GameScene extends Phaser.Scene {
         }
         if (this.enemyGroup) {
             this.enemyGroup.children.each((enemy) => {
-                if (enemy instanceof enemy_1.Enemy && enemy.body instanceof Phaser.Physics.Arcade.Body) {
+                if (enemy instanceof Enemy && enemy.body instanceof Phaser.Physics.Arcade.Body) {
                     enemy.body.debugShowBody = this.isDevelopmentMode;
                     enemy.body.debugShowVelocity = this.isDevelopmentMode;
                 }
@@ -298,8 +262,8 @@ class GameScene extends Phaser.Scene {
         let spawnPoint = roomData.playerSpawnPoints[entryDirection] || roomData.playerSpawnPoints.default;
         if (!spawnPoint) {
             spawnPoint = roomData.playerSpawnPoints.default || {
-                x: screenUtils_js_1.winProps.windowCenterX,
-                y: screenUtils_js_1.winProps.windowCenterY,
+                x: winProps.windowCenterX,
+                y: winProps.windowCenterY,
             };
         }
         spawnPoint.x = Phaser.Math.Clamp(spawnPoint.x, roomDim.roomOffsetX + this.player.getPlayerCenterX(), roomDim.roomOffsetX + roomDim.innerRoomWidth - this.player.getPlayerCenterX());
@@ -310,7 +274,7 @@ class GameScene extends Phaser.Scene {
             roomData.weapons.forEach((weaponDef) => {
                 if (!weaponDef.pickedUp &&
                     !(this.player.equippedWeapon && this.player.equippedWeapon.id === weaponDef.id)) {
-                    const newWeapon = weapons_1.Weapons.createWeaponFromDefinition(this, weaponDef);
+                    const newWeapon = Weapons.createWeaponFromDefinition(this, weaponDef);
                     newWeapon.setScale(0.15);
                     newWeapon.setDepth(0);
                     this.weaponGroup.add(newWeapon);
@@ -320,7 +284,7 @@ class GameScene extends Phaser.Scene {
         if (roomData.enemies && roomData.enemies.length > 0) {
             roomData.enemies.forEach((enemyDef) => {
                 if (!enemyDef.isDead) {
-                    const newEnemy = enemy_1.Enemy.createEnemyFromDef(this, { ...enemyDef });
+                    const newEnemy = Enemy.createEnemyFromDef(this, { ...enemyDef });
                     newEnemy.enemyDefinition = enemyDef;
                     this.enemyGroup.add(newEnemy);
                 }
@@ -333,7 +297,7 @@ class GameScene extends Phaser.Scene {
             this.player.equippedWeapon.projectileGroup &&
             this.enemyGroup) {
             this.physics.add.overlap(this.player.equippedWeapon.projectileGroup, this.enemyGroup, (projectile, enemy) => {
-                if (enemy instanceof enemy_1.Enemy) {
+                if (enemy instanceof Enemy) {
                     enemy.takeDamage(this.player.equippedWeapon.damage);
                 }
                 projectile.destroy();
@@ -365,19 +329,19 @@ class GameScene extends Phaser.Scene {
             return door;
         };
         if (connections.right) {
-            createDoor(roomRightEdge - screenUtils_js_1.rmProps.doorThickness / 2, roomCenterY, screenUtils_js_1.rmProps.doorThickness, roomDim.doorHeight, connections.right, "left");
+            createDoor(roomRightEdge - rmProps.doorThickness / 2, roomCenterY, rmProps.doorThickness, roomDim.doorHeight, connections.right, "left");
         }
         // Left Door
         if (connections.left) {
-            createDoor(roomLeftEdge + screenUtils_js_1.rmProps.doorThickness / 2, roomCenterY, screenUtils_js_1.rmProps.doorThickness, roomDim.doorHeight, connections.left, "right");
+            createDoor(roomLeftEdge + rmProps.doorThickness / 2, roomCenterY, rmProps.doorThickness, roomDim.doorHeight, connections.left, "right");
         }
         // Up Door
         if (connections.up) {
-            createDoor(roomCenterX, roomTopEdge + screenUtils_js_1.rmProps.doorThickness / 2, roomDim.doorWidth, screenUtils_js_1.rmProps.doorThickness, connections.up, "down");
+            createDoor(roomCenterX, roomTopEdge + rmProps.doorThickness / 2, roomDim.doorWidth, rmProps.doorThickness, connections.up, "down");
         }
         // Down Door
         if (connections.down) {
-            createDoor(roomCenterX, roomBottomEdge - screenUtils_js_1.rmProps.doorThickness / 2, roomDim.doorWidth, screenUtils_js_1.rmProps.doorThickness, connections.down, "up");
+            createDoor(roomCenterX, roomBottomEdge - rmProps.doorThickness / 2, roomDim.doorWidth, rmProps.doorThickness, connections.down, "up");
         }
         this.physics.add.overlap(this.player, this.doorGroup, this.handleRoomTransition, undefined, this);
     }
@@ -423,7 +387,7 @@ class GameScene extends Phaser.Scene {
         }
         if (this.player.equippedWeapon && this.player.equippedWeapon.projectileGroup) {
             this.physics.add.overlap(this.player.equippedWeapon.projectileGroup, this.enemyGroup, (projectile, enemy) => {
-                if (enemy instanceof enemy_1.Enemy) {
+                if (enemy instanceof Enemy) {
                     enemy.takeDamage(this.player.equippedWeapon.damage);
                 }
                 projectile.destroy();
@@ -431,4 +395,3 @@ class GameScene extends Phaser.Scene {
         }
     }
 }
-exports.GameScene = GameScene;

@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TutorialScene = void 0;
 //tutorialScene
-const player_1 = require("../player");
-const screenUtils_1 = require("../utils/screenUtils");
-class TutorialScene extends Phaser.Scene {
+import { createPlayerWithTag } from "../player";
+import { winProps } from "../utils/screenUtils";
+export class TutorialScene extends Phaser.Scene {
     constructor() {
         super({ key: "TutorialScene" });
         this.player = null;
@@ -19,7 +16,7 @@ class TutorialScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor("rgb(192, 192, 192)");
         const xPos = this.cameras.main.centerX;
         const yPos = this.cameras.main.centerY;
-        const { player, playerNameTag } = (0, player_1.createPlayerWithTag)(this, xPos, yPos, {
+        const { player, playerNameTag } = createPlayerWithTag(this, xPos, yPos, {
             initialSpeed: 150,
         });
         this.player = player;
@@ -39,7 +36,7 @@ class TutorialScene extends Phaser.Scene {
         })
             .setOrigin(0.5);
         const continueButton = this.add
-            .text(xPos, screenUtils_1.winProps.gameHeight - 100, "Continue", {
+            .text(xPos, winProps.gameHeight - 100, "Continue", {
             fontSize: "32px",
             color: "#fff",
             backgroundColor: "#007BFF",
@@ -55,7 +52,7 @@ class TutorialScene extends Phaser.Scene {
             });
         });
         const skipTutorialButton = this.add
-            .text(xPos, screenUtils_1.winProps.gameHeight - 50, "Skip Tutorial", {
+            .text(xPos, winProps.gameHeight - 50, "Skip Tutorial", {
             fontSize: "20px",
             color: "#999",
             backgroundColor: "#333",
@@ -77,4 +74,3 @@ class TutorialScene extends Phaser.Scene {
         }
     }
 }
-exports.TutorialScene = TutorialScene;

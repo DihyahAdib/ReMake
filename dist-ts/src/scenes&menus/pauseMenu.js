@@ -1,8 +1,5 @@
-"use strict";
 //pauseMenu.js
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PauseScene = void 0;
-class PauseScene extends Phaser.Scene {
+export class PauseScene extends Phaser.Scene {
     constructor() {
         super({ key: "PauseScene" });
         this.canAccessPauseMenu = true;
@@ -70,4 +67,3 @@ class PauseScene extends Phaser.Scene {
         }, [], this);
     }
 }
-exports.PauseScene = PauseScene;

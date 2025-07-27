@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.rmProps = exports.winProps = void 0;
-exports.getRoomDimensions = getRoomDimensions;
 //screenUtils.js
-exports.winProps = {
+export const winProps = {
     gameWidth: window.myUniqueElectronAPI.screenSize.width,
     gameHeight: window.myUniqueElectronAPI.screenSize.height,
     get windowCenterX() {
@@ -27,7 +23,7 @@ exports.winProps = {
 };
 ;
 ;
-exports.rmProps = {
+export const rmProps = {
     roomPaddingWidth: 160,
     roomPaddingHeight: 80,
     doorPaddingWidth: 400,
@@ -36,14 +32,14 @@ exports.rmProps = {
     topBottomOffset: 150,
     doorThickness: 50,
 };
-function getRoomDimensions() {
+export function getRoomDimensions() {
     return {
-        innerRoomWidth: exports.winProps.gameWidth - exports.rmProps.roomPaddingWidth,
-        innerRoomHeight: exports.winProps.gameHeight - exports.rmProps.roomPaddingHeight,
-        roomOffsetX: exports.rmProps.roomPaddingWidth / 2,
-        roomOffsetY: exports.rmProps.roomPaddingHeight / 2,
-        doorWidth: exports.winProps.windowCenterX - exports.rmProps.doorPaddingWidth,
-        doorHeight: exports.winProps.windowCenterY - exports.rmProps.doorPaddingHeight,
+        innerRoomWidth: winProps.gameWidth - rmProps.roomPaddingWidth,
+        innerRoomHeight: winProps.gameHeight - rmProps.roomPaddingHeight,
+        roomOffsetX: rmProps.roomPaddingWidth / 2,
+        roomOffsetY: rmProps.roomPaddingHeight / 2,
+        doorWidth: winProps.windowCenterX - rmProps.doorPaddingWidth,
+        doorHeight: winProps.windowCenterY - rmProps.doorPaddingHeight,
     };
 }
 ;

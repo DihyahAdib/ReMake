@@ -46,7 +46,7 @@ function createWindow(): void {
   });
 
   Menu.setApplicationMenu(null);
-  mainWindow.loadFile(path.join(__dirname, "dist-ts/src", "index.html"));
+   mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
 
   if (isDevelopment) {
     mainWindow.webContents.openDevTools();

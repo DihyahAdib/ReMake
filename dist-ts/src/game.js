@@ -1,22 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 //game.js
-const screenUtils_1 = require("./utils/screenUtils");
-const mainMenu_1 = require("./scenes&menus/mainMenu");
-const tutorialScene_1 = require("./scenes&menus/tutorialScene");
-const gameScene_1 = require("./scenes&menus/gameScene");
-const pauseMenu_1 = require("./scenes&menus/pauseMenu");
-const settingsMenu_1 = require("./scenes&menus/settingsMenu");
+import { winProps } from "./utils/screenUtils";
+import { MenuScene } from "./scenes&menus/mainMenu";
+import { TutorialScene } from "./scenes&menus/tutorialScene";
+import { GameScene } from "./scenes&menus/gameScene";
+import { PauseScene } from "./scenes&menus/pauseMenu";
+import { SettingScene } from "./scenes&menus/settingsMenu";
 const config = {
     type: Phaser.AUTO,
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         parent: "game-container",
-        width: screenUtils_1.winProps.gameWidth,
-        height: screenUtils_1.winProps.gameHeight,
+        width: winProps.gameWidth,
+        height: winProps.gameHeight,
     },
-    scene: [mainMenu_1.MenuScene, tutorialScene_1.TutorialScene, gameScene_1.GameScene, settingsMenu_1.SettingScene, pauseMenu_1.PauseScene],
+    scene: [MenuScene, TutorialScene, GameScene, SettingScene, PauseScene],
     physics: {
         default: "arcade",
         arcade: {
@@ -29,4 +27,4 @@ const config = {
     },
 };
 const game = new Phaser.Game(config);
-exports.default = game;
+export default game;

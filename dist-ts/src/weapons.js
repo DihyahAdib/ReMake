@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Weapons = void 0;
-class Weapons extends Phaser.GameObjects.Sprite {
+export class Weapons extends Phaser.GameObjects.Sprite {
     constructor(scene, texture, frame, id, x, y, weaponAttackDamage, weaponAttackCooldown, projectileSpeed, roomKeys, iWeaponData) {
         super(scene, x, y, texture, frame);
         this.isOnCooldown = false;
@@ -56,4 +53,3 @@ class Weapons extends Phaser.GameObjects.Sprite {
         projectileBody.setAllowGravity(false);
     }
 }
-exports.Weapons = Weapons;
