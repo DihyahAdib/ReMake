@@ -4,7 +4,6 @@ import path from "path";
 import Store from "electron-store";
 
 const store = new Store();
-
 const disableVSync: boolean = store.get("disableVSync", false) as boolean;
 
 if (disableVSync) {
@@ -24,9 +23,6 @@ try {
   console.log("electron-reloader not loaded (likely in production or not installed):", e.message);
 }
 
-/**
- * Creates the main Electron browser window.
- */
 function createWindow(): void {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
@@ -50,7 +46,7 @@ function createWindow(): void {
   });
 
   Menu.setApplicationMenu(null);
-  mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
+  mainWindow.loadFile(path.join(__dirname, "dist-ts/src", "index.html"));
 
   if (isDevelopment) {
     mainWindow.webContents.openDevTools();

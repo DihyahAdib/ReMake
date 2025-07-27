@@ -1,12 +1,11 @@
 //tutorialScene
-
-import { createPlayerWithTag } from "../utils/playerUtils.ts";
-import { gameHeight, gameWidth } from "../utils/screenUtils.ts";
+import { createPlayerWithTag } from "../player";
+import { winProps } from "../utils/screenUtils";
 
 export class TutorialScene extends Phaser.Scene {
-  public player: Phaser.Physics.Arcade.Sprite & {update: (time: number, delta: number) => void} | null = null;
-  public playerNameTag: Phaser.GameObjects.Text | null = null;
-  public keys: any = null;
+  player: Phaser.Physics.Arcade.Sprite & {update: (time: number, delta: number) => void} | null = null;
+  playerNameTag: Phaser.GameObjects.Text | null = null;
+  keys: any = null;
 
   constructor() {
     super({ key: "TutorialScene" });
@@ -47,7 +46,7 @@ export class TutorialScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     const continueButton = this.add
-      .text(xPos, gameHeight - 100, "Continue", {
+      .text(xPos, winProps.gameHeight - 100, "Continue", {
         fontSize: "32px",
         color: "#fff",
         backgroundColor: "#007BFF",
@@ -65,7 +64,7 @@ export class TutorialScene extends Phaser.Scene {
     });
 
     const skipTutorialButton = this.add
-      .text(xPos, gameHeight - 50, "Skip Tutorial", {
+      .text(xPos, winProps.gameHeight - 50, "Skip Tutorial", {
         fontSize: "20px",
         color: "#999",
         backgroundColor: "#333",

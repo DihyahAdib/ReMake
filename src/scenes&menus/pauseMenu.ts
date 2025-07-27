@@ -7,7 +7,7 @@ export class PauseScene extends Phaser.Scene {
   pauseMenuContainer: HTMLElement | null = null;
   resumeButton: HTMLElement | null = null;
   settingButton: HTMLElement | null = null;
-  public keys: { Esc?: Phaser.Input.Keyboard.Key} = {};
+  keys: { Esc?: Phaser.Input.Keyboard.Key} = {};
 
   constructor() {
     super({ key: "PauseScene" });
@@ -56,7 +56,7 @@ export class PauseScene extends Phaser.Scene {
     }
   }
 
-  public showUIPanel(): void {
+  showUIPanel(): void {
     this.canAccessPauseMenu = false;
 
     if (this.pauseMenuContainer) {

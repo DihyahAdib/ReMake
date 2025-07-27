@@ -1,0 +1,65 @@
+ReMake
+├── .gitignore
+├── dist-ts
+│   ├── main.js
+│   ├── preload.js
+│   └── src
+│       ├── assets
+│       │   ├── Cat.png
+│       │   ├── door.png
+│       │   ├── Enemy.png
+│       │   ├── icon.png
+│       │   ├── room1_background.png
+│       │   ├── room2_background.png
+│       │   └── sword.png
+│       ├── css
+│       │   ├── gameSceneStyle.css
+│       │   └── pauseMenuStyle.css
+│       ├── enemy.js
+│       ├── game.js
+│       ├── index.html
+│       ├── lib
+│       │   └── phaser.min.js
+│       ├── player.js
+│       ├── scenes&menus
+│       │   ├── gameScene.js
+│       │   ├── mainMenu.js
+│       │   ├── pauseMenu.js
+│       │   ├── settingsMenu.js
+│       │   └── tutorialScene.js
+│       ├── utils
+│       │   └── screenUtils.js
+│       └── weapons.js
+├── main.ts
+├── package-lock.json
+├── package.json
+├── preload.ts
+├── README.md
+├── scripts
+│   └── copy-assets.js
+├── src
+│   ├── assets
+│   │   ├── Cat.png
+│   │   ├── door.png
+│   │   ├── Enemy.png
+│   │   ├── icon.png
+│   │   ├── room1_background.png
+│   │   ├── room2_background.png
+│   │   └── sword.png
+│   ├── css
+│   │   ├── gameSceneStyle.css
+│   │   └── pauseMenuStyle.css
+│   ├── enemy.ts
+│   ├── game.ts
+│   ├── index.html
+│   ├── player.ts
+│   ├── scenes&menus
+│   │   ├── gameScene.ts
+│   │   ├── mainMenu.ts
+│   │   ├── pauseMenu.ts
+│   │   ├── settingsMenu.ts
+│   │   └── tutorialScene.ts
+│   ├── utils
+│   │   └── screenUtils.ts
+│   └── weapons.ts
+└── tsconfig.json

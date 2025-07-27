@@ -25,9 +25,6 @@ try {
 catch (e) {
     console.log("electron-reloader not loaded (likely in production or not installed):", e.message);
 }
-/**
- * Creates the main Electron browser window.
- */
 function createWindow() {
     const primaryDisplay = electron_1.screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;

@@ -76,15 +76,15 @@ To package your game into a distributable executable for Windows, macOS, or Linu
 REMAKE/
 ├── node_modules/             # Project dependencies
 ├── src/                      # source code
-│   ├── game.js               # Phaser game instance
+│   ├── game.ts               # Phaser game instance
 │   ├── scenes&menus/         # Game scenes (MainMenu, GameScene, PauseMenu, SettingsMenu, TutorialScene)
 │   ├── utils/                # Utility functions (screenUtils, playerUtils)
-│   ├── enemy.js              # Enemy class
-│   └── weapons.js            # Weapon class
+│   ├── enemy.ts              # Enemy class
+│   └── weapons.ts            # Weapon class
 ├── assets/                   # Game assets (images, sounds, etc.)
 ├── index.html                # Main HTML file for the game
 ├── main.ts                   # Electron main process script
-├── preload.js                # Electron preload script for IPC
+├── preload.ts                # Electron preload script for IPC
 └── package.json              # Project configuration and build settings
 ```
 

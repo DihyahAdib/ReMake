@@ -1,0 +1,138 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Enemy = void 0;
+class Enemy extends Phaser.Physics.Arcade.Sprite {
+    constructor(scene, texture, frame, id, position, enemySpeed, enemyDamage, enemyHealth, isEnemyDead, enemyAmount, roomKeys) {
+        super(scene, position.x, position.y, texture, frame);
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
+        this.currentScene = scene;
+        this.enemyImage = texture;
+        this.id = id;
+        this.position = position;
+        this.speed = enemySpeed;
+        this.damage = enemyDamage;
+        this.health = enemyHealth;
+        this.isDead = isEnemyDead;
+        this.count = enemyAmount;
+        this.rmkey = roomKeys;
+        this.canTakeDamage = true;
+        this.setCollideWorldBounds(true);
+        this.body.setDrag(50);
+        this.body.setDamping(true);
+        this.body.immovable = false;
+        this.enemyDefinition = null;
+        this.nameTag = null;
+        this.healthTag = null;
+        this.mobsSpeedIncreaseCount = 0;
+        this.createTags();
+    }
+    createTags() {
+        this.nameTag = this.currentScene.add
+            .text(this.x, this.y - this.displayHeight / 2 - 10, this.id, {
+            font: "12px Arial",
+            color: "#FFD700",
+            align: "center",
+        })
+            .setOrigin(0.5)
+            .setDepth(11);
+        this.healthTag = this.currentScene.add
+            .text(this.x, this.y - this.displayHeight / 2 - 25, `HP: ${this.health}`, {
+            font: "12px Arial",
+            color: "#FF0000",
+            align: "center",
+        })
+            .setOrigin(0.5)
+            .setDepth(11);
+    }
+    update(time, delta) {
+        if (this.isDead) {
+            if (this.nameTag)
+                this.nameTag.setVisible(false);
+            if (this.healthTag)
+                this.healthTag.setVisible(false);
+            return;
+        }
+        this.move();
+        if (this.nameTag) {
+            this.nameTag.x = this.x;
+            this.nameTag.y = this.y - this.displayHeight / 2 - 10;
+        }
+        if (this.healthTag) {
+            this.healthTag.x = this.x;
+            this.healthTag.y = this.y - this.displayHeight / 2 - 25;
+            this.healthTag.setText(`HP: ${this.health}`);
+        }
+    }
+    takeDamage(amount) {
+        if (this.canTakeDamage && !this.isDead && this.active) {
+            this.health -= amount;
+            console.log(`Enemy ${this.health}`);
+            if (this.health <= 0) {
+                this.health = 0;
+                this.die();
+            }
+            this.canTakeDamage = false;
+            this.currentScene.time.delayedCall(200, () => {
+                this.canTakeDamage = true;
+            }, [], this);
+        }
+    }
+    move() {
+        const player = this.currentScene.player;
+        if (player && !player.isDead) {
+            this.currentScene.physics.moveToObject(this, player, this.speed);
+        }
+        else {
+            this.body.setVelocity(0);
+        }
+        const bounds = this.currentScene.physics.world.bounds;
+        this.x = Phaser.Math.Clamp(this.x, bounds.x + this.width / 2, bounds.right - this.width / 2);
+        this.y = Phaser.Math.Clamp(this.y, bounds.y + this.height / 2, bounds.bottom - this.height / 2);
+        this.increaseSpeedThreshold();
+    }
+    increaseSpeedThreshold() {
+        const player = this.currentScene.player;
+        let playerMaxHealth = player.mxHealth;
+        let currentPlayerHealth = player.health;
+        let currentMobBoostThreshold = playerMaxHealth * 0.5;
+        if (currentPlayerHealth < currentMobBoostThreshold && this.mobsSpeedIncreaseCount === 0) {
+            this.mobsSpeedIncreaseCount++;
+            this.speed += 300;
+            console.log(this.speed);
+        }
+    }
+    die() {
+        this.isDead = true;
+        this.body.setVelocity(0, 0);
+        this.disableBody(true, true);
+        if (this.enemyDefinition) {
+            this.enemyDefinition.isDead = true;
+            console.log(`Enemy ${this.id} marked as dead in room data.`);
+        }
+        this.destroy();
+    }
+    /**
+     * Overrides the default Phaser.GameObjects.Sprite destroy method.
+     * This ensures that associated game objects like nameTag and healthTag are also destroyed
+     * when the enemy sprite itself is destroyed (e.g., when clearing a group).
+     * @param {boolean} [fromScene] - Whether this destroy call originated from the Scene.
+     */
+    destroy(fromScene) {
+        if (this.nameTag) {
+            this.nameTag.destroy();
+            this.nameTag = null;
+        }
+        if (this.healthTag) {
+            this.healthTag.destroy();
+            this.healthTag = null;
+        }
+        super.destroy(fromScene);
+    }
+    static createEnemyFromDef(scene, enemyDef) {
+        const enemy = new Enemy(scene, "enemy", undefined, enemyDef.id, enemyDef.position, enemyDef.speed, enemyDef.damage, enemyDef.health, enemyDef.isDead, enemyDef.count, enemyDef.rmkey);
+        enemy.enemyDefinition = enemyDef;
+        return enemy;
+    }
+}
+exports.Enemy = Enemy;

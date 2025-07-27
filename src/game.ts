@@ -1,11 +1,10 @@
 //game.js
-
-import { gameHeight, gameWidth } from "./utils/screenUtils.ts";
-import { MenuScene } from "./scenes&menus/mainMenu.ts";
-import { TutorialScene } from "./scenes&menus/tutorialScene.ts";
-import { GameScene } from "./scenes&menus/gameScene.ts";
-import { PauseScene } from "./scenes&menus/pauseMenu.ts";
-import { SettingScene } from "./scenes&menus/settingsMenu.ts";
+import { winProps } from "./utils/screenUtils";
+import { MenuScene } from "./scenes&menus/mainMenu";
+import { TutorialScene } from "./scenes&menus/tutorialScene";
+import { GameScene } from "./scenes&menus/gameScene";
+import { PauseScene } from "./scenes&menus/pauseMenu";
+import { SettingScene } from "./scenes&menus/settingsMenu";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -13,8 +12,8 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     parent: "game-container",
-    width: gameWidth,
-    height: gameHeight,
+    width: winProps.gameWidth,
+    height: winProps.gameHeight,
   },
 
   scene: [MenuScene, TutorialScene, GameScene, SettingScene, PauseScene],

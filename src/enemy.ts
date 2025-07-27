@@ -1,58 +1,69 @@
 //enemy.js
-import { Player } from "./player.ts";
+import { Player } from "./player";
 
-interface enemyDefinition {
+export interface EnemyDefinition {
   id: string;
-  x: number;
-  y: number;
+  position: {x: number, y: number}
   speed: number;
   damage: number;
   health: number;
   isDead: boolean;
   count: number;
+  rmkey: string;
 }
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-  public id: string;
-  public speed: number;
-  public damage: number;
-  public health: number;
-  public isDead: boolean;
-  public count: number;
-  public canTakeDamage: boolean;
-  public mobsSpeedIncreaseCount: number;
-  public enemyDefinition: enemyDefinition | null;
-  public nameTag: Phaser.GameObjects.Text | null;
-  public healthTag: Phaser.GameObjects.Text | null;
-  public currentScene: Phaser.Scene;
-  public isDevelopmentMode?: boolean;
+  currentScene: Phaser.Scene;
+  enemyImage: string;
+  enemyFrame: any;
+
+  id: string;
+  position: {x: number, y: number};
+  speed: number;
+  damage: number;
+  health: number;
+  isDead: boolean;
+  count: number;
+  rmkey: string;
+
+  canTakeDamage: boolean;
+  mobsSpeedIncreaseCount: number;
+  enemyDefinition: EnemyDefinition | null;
+
+  nameTag: Phaser.GameObjects.Text | null;
+  healthTag: Phaser.GameObjects.Text | null;
+  isDevelopmentMode?: boolean;
 
   declare body: Phaser.Physics.Arcade.Body;
 
   constructor(
     scene: Phaser.Scene,
-    x: number,
-    y: number,
     texture: string,
-    frame: string | number | undefined,
+    frame: any,
     id: string,
+    position: {x: number, y: number},
     enemySpeed: number,
     enemyDamage: number,
     enemyHealth: number,
     isEnemyDead: boolean,
     enemyAmount: number,
-    isDevelopmentMode?: boolean
+    roomKeys: string,
   ) {
-    super(scene, x, y, texture, frame);
+    super(scene, position.x, position.y, texture, frame);
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
+    this.currentScene = scene;
+    this.enemyImage = texture;
     this.id = id;
+
+    this.position = position;
     this.speed = enemySpeed;
     this.damage = enemyDamage;
     this.health = enemyHealth;
     this.isDead = isEnemyDead;
     this.count = enemyAmount;
+    this.rmkey = roomKeys;
 
     this.canTakeDamage = true;
     this.setCollideWorldBounds(true);
@@ -60,12 +71,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.body.setDamping(true);
     this.body.immovable = false;
 
-    this.currentScene = scene;
-    this.mobsSpeedIncreaseCount = 0;
-
     this.enemyDefinition = null;
     this.nameTag = null;
     this.healthTag = null;
+
+    this.mobsSpeedIncreaseCount = 0;
 
     this.createTags();
   }
@@ -188,19 +198,19 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     super.destroy(fromScene);
   }
 
-  static createEnemyFromDef(scene: Phaser.Scene, enemyDef: enemyDefinition): Enemy {
+  static createEnemyFromDef(scene: Phaser.Scene, enemyDef: EnemyDefinition): Enemy {
     const enemy = new Enemy(
       scene,
-      scene.cameras.main.centerX + enemyDef.x,
-      scene.cameras.main.centerY + enemyDef.y,
       "enemy",
       undefined,
       enemyDef.id,
+      enemyDef.position,
       enemyDef.speed,
       enemyDef.damage,
       enemyDef.health,
       enemyDef.isDead,
-      enemyDef.count
+      enemyDef.count,
+      enemyDef.rmkey,
     );
     enemy.enemyDefinition = enemyDef;
     return enemy;

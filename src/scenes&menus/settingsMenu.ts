@@ -1,6 +1,6 @@
 //settingsScene.js
-import Phaser from "phaser";
-import { gameHeight, gameWidth } from "../utils/screenUtils.ts";
+
+import { winProps } from "../utils/screenUtils";
 
 const settingsButtonStyle: Phaser.Types.GameObjects.Text.TextStyle & {
   padding: { x: number; y: number };
@@ -15,13 +15,13 @@ const settingsButtonStyle: Phaser.Types.GameObjects.Text.TextStyle & {
 
 export class SettingScene extends Phaser.Scene {
   previousSceneKey: string | null = null;
-  public disableVSync: boolean = false;
-  public disableFullScreen: boolean = false;
+  disableVSync: boolean = false;
+  disableFullScreen: boolean = false;
 
 
-  public settingsMnBtnBack!: Phaser.GameObjects.Text;
-  public toggleVSyncButton!: Phaser.GameObjects.Text;
-  public toggleFullScreenButton!: Phaser.GameObjects.Text;
+  settingsMnBtnBack!: Phaser.GameObjects.Text;
+  toggleVSyncButton!: Phaser.GameObjects.Text;
+  toggleFullScreenButton!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: "SettingScene" });
@@ -44,7 +44,7 @@ export class SettingScene extends Phaser.Scene {
 
     // --- VSync Toggle ---
     this.toggleVSyncButton = this.add
-      .text(gameWidth / 2, gameHeight / 2, "", settingsButtonStyle)
+      .text(winProps.gameWidth / 2, winProps.gameHeight / 2, "", settingsButtonStyle)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -61,7 +61,7 @@ export class SettingScene extends Phaser.Scene {
 
     // --- FullScreen Toggle ---
     this.toggleFullScreenButton = this.add
-      .text(gameWidth / 2, 450, "", settingsButtonStyle)
+      .text(winProps.gameWidth / 2, 450, "", settingsButtonStyle)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -76,10 +76,10 @@ export class SettingScene extends Phaser.Scene {
     });
   }
 
-  public updateVSyncButtonText(): void {
+  updateVSyncButtonText(): void {
     this.toggleVSyncButton.setText(`VSync: ${this.disableVSync ? "Disabled" : "Enabled"}`);
   }
-  public updateFullScreenButtonText(): void {
+  updateFullScreenButtonText(): void {
     this.toggleFullScreenButton.setText(
       `FullScreen: ${this.disableFullScreen ? "Disabled" : "Enabled"}`
     );

@@ -1,6 +1,6 @@
 //player.js
-import Phaser from "phaser";
-import { Weapons } from "./weapons.ts";
+import * as Phaser from "phaser";
+import { WeaponDefinition, Weapons} from "./weapons";
 
 type DirectionKeys = {
   up: Phaser.Input.Keyboard.Key;
@@ -9,37 +9,73 @@ type DirectionKeys = {
   right: Phaser.Input.Keyboard.Key;
 }
 
+export interface PlayerDefaults {
+  id: string;
+  x: number;
+  y: number;
+  texture: string;
+  frame: string | number | undefined;
+  initialDamage: number;
+  initialSpeed: number;
+  initialHealth: number;
+  level: number;
+  name: string;
+}
+
+export interface IPlayer extends Phaser.Physics.Arcade.Sprite {
+  health: number;
+  mxHealth: number;
+  isDead: boolean;
+  equippedWeapon: Weapons;
+  inventory: WeaponDefinition[];
+  update: (time: number, delta: number) => void;
+  handleMovement: () => void
+  takeDamage: (amount: number) => void;
+  getPlayerCenterX: () => number;
+  getPlayerCenterY: () => number;
+}
+
+type PlayerOverrides = Partial<PlayerDefaults>;
+
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  public currentScene: Phaser.Scene;
-  public attackDamage: number;
-  public speed: number;
-  public health: number;
-  public mxHealth: number = 100;
-  public currentLevel: number;
-  public playerName: string;
-  public isDead: boolean = false;
-  public canDealDamage: boolean = true;
-  public canTakeDamage: boolean = true;
-  public damageCooldown: number = 1000;
-  public inventory: unknown[] = [];
-  public keys: DirectionKeys;
-  public equippedWeapon?: Weapons;
+  currentScene: Phaser.Scene;
+  playerImage: string;
+  playerFrame: string | number | undefined;
+  id: string;
+  attackDamage: number;
+  speed: number;
+  health: number;
+  mxHealth: number = 100;
+  currentLevel: number;
+  playerName: string;
+  isDead: boolean = false;
+  canDealDamage: boolean = true;
+  canTakeDamage: boolean = true;
+  damageCooldown: number = 1000;
+  inventory: any[] = [];
+  keys: DirectionKeys;
+  equippedWeapon!: Weapons;
 
   constructor(
     scene: Phaser.Scene,
+    texture: string,
+    frame: string | number | undefined,
+    id: string,
     x: number,
     y: number,
-    texture: string,
-    frame: string | number,
     attackDamage: number,
     initialSpeed: number,
     initialHealth: number,
     level: number,
-    nameTag: string
+    nameTag: string,
   ) {
     super(scene, x, y, texture, frame);
 
     this.currentScene = scene;
+    this.playerImage = texture;
+    this.playerFrame = frame;
+
+    this.id = id;
     this.attackDamage = attackDamage;
     this.speed = initialSpeed;
     this.health = initialHealth;
@@ -71,10 +107,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update(time: number, delta: number): void {
     if (this.isDead) return;
     const deltaSec = delta / 1000;
-    this.handleMovement(deltaSec);
+    this.handleMovement();
   }
 
-  handleMovement(deltaSec: number): void {
+  handleMovement(): void {
     let moveX = 0;
     let moveY = 0;
 
@@ -117,17 +153,71 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     );
   }
 
-  public die() {
+  die() {
     this.isDead = true;
     this.setVelocity(0, 0);
     this.disableBody(true, true);
   }
 
-  setWeapon(weapon: Weapons): void {
-    this.equippedWeapon = weapon;
+  getPlayerCenterX(): number {
+    return (this.body as Phaser.Physics.Arcade.Body).width / 2;
   }
 
-  getWeapon(): Weapons | undefined {
-    return this.equippedWeapon;
+  getPlayerCenterY(): number {
+    return (this.body as Phaser.Physics.Arcade.Body).height / 2;
   }
 }
+
+
+/**
+ * Returns the default player properties
+ */
+export const getPlayerDefaults = (x: number, y:number): PlayerDefaults => ({
+  id: "Player",
+  x,
+  y,
+  texture: "player",
+  frame: undefined,
+  initialDamage: 5,
+  initialSpeed: 450,
+  initialHealth: 100,
+  level: 0,
+  name: "Bon bon",
+});
+
+/**
+ * Creates a Player instance and its associated name tag.
+ */
+export const createPlayerWithTag = (scene: Phaser.Scene, x: number, y: number, overrides: PlayerOverrides = {}): {player: Player, playerNameTag: Phaser.GameObjects.Text} => {
+  const defaults = getPlayerDefaults(x, y);
+  const playerProps = { ...defaults, ...overrides };
+
+  const player = new Player(
+    scene,
+    playerProps.texture,
+    playerProps.frame,
+    playerProps.id,
+    playerProps.x,
+    playerProps.y,
+    playerProps.initialDamage,
+    playerProps.initialSpeed,
+    playerProps.initialHealth,
+    playerProps.level,
+    playerProps.name
+  );
+
+  const nameTagYOffset =
+    (player.displayHeight || (player.body as Phaser.Physics.Arcade.Body).height) / 2 + 10;
+  const playerNameTag = scene.add
+    .text(player.x, player.y - nameTagYOffset, `|${playerProps.name}|`, {
+      font: "26px Arial",
+      color: "#ffffff",
+      backgroundColor: "#00000080",
+      padding: { x: 5, y: 2 },
+      align: "center",
+    })
+    .setOrigin(0.5)
+    .setScrollFactor(1);
+
+  return { player, playerNameTag };
+};

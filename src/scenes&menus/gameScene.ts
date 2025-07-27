@@ -1,57 +1,11 @@
 //gameScene.js
 import * as Phaser from 'phaser'
-import { Enemy } from "../enemy.ts";
-import {
-  gameWidth,
-  gameHeight,
-  windowCenterX,
-  windowCenterY,
-  rmProps,
-} from "../utils/screenUtils.js";
-import { createPlayerWithTag } from "../utils/playerUtils.js";
-import { Weapons } from "../weapons.ts";
+import { winProps, RoomProperties, RoomDimensions, rmProps, getRoomDimensions } from "../utils/screenUtils.js";
+import { Enemy, EnemyDefinition } from "../enemy";
+import { Weapons, WeaponDefinition} from "../weapons";
+import { IPlayer, createPlayerWithTag } from '../player';
 
-interface IRmProps {
- roomPaddingWidth: number;
- roomPaddingHeight:number;
- doorPaddingWidth:number;
- doorPaddingHeight:number;
- leftRightOffset: number;
- topBottomOffset: number;
- doorThickness: number
-}
-
-interface IRmDim {
-  innerRoomWidth: number;
-  innerRoomHeight: number;
-  roomOffsetX: number;
-  roomOffsetY: number;
-  doorWidth: number;
-  doorHeight: number;
-};
-
-// defining structs for the enemy and weapons
-interface IEnemyDefinition {
-  id: string;
-  position: {x: number, y: number}
-  speed: number;
-  damage: number;
-  health: number;
-  isDead: boolean; 
-  count: number;
-  rmkey: string
-}
-
-interface IWeaponDefinition {
-  id: string;
-  x: number;
-  y: number;
-  damage: number;
-  cooldown: number;
-  speed: number;
-  pickedUp: boolean;
-  rmkey: string
-}
+const roomDim = getRoomDimensions();
 
 interface IPlayerSpawnPoint {
   x: number;
@@ -75,39 +29,11 @@ interface IRoomData {
     down?: IPlayerSpawnPoint;
     default?: IPlayerSpawnPoint;
   };
-  enemies: IEnemyDefinition[];
-  weapons: IWeaponDefinition[];
+  enemies: EnemyDefinition[];
+  weapons: WeaponDefinition[];
   items: any[]; //define this later 
 }
 
-interface IPlayer extends Phaser.Physics.Arcade.Sprite {
-  health: number;
-  mxHealth: number;
-  isDead: boolean;
-  equippedWeapon: IWeapon | null;
-  inventory: IWeaponDefinition[];
-  update: (time: number, delta: number) => void;
-  takeDamage: (amount: number) => void;
-}
-
-interface IWeapon extends Phaser.Physics.Arcade.Sprite {
-  id: string;
-  damage: number;
-  cooldown: number;
-  speed: number;
-  weaponDefinition: IWeaponDefinition;
-}
-
-const { roomPaddingWidth, roomPaddingHeight, doorPaddingWidth, doorPaddingHeight } = rmProps as IRmProps;
-
-const rmDim: IRmDim = {
-  innerRoomWidth: gameWidth - roomPaddingWidth,
-  innerRoomHeight: gameHeight - roomPaddingHeight,
-  roomOffsetX: roomPaddingWidth / 2,
-  roomOffsetY: roomPaddingHeight / 2,
-  doorWidth: windowCenterX - doorPaddingWidth,
-  doorHeight: windowCenterY - doorPaddingHeight,
-};
 
 export class GameScene extends Phaser.Scene {
   enemyGroup!: Phaser.Physics.Arcade.Group;
@@ -124,7 +50,7 @@ export class GameScene extends Phaser.Scene {
   debugGraphics: Phaser.GameObjects.Graphics | null = null;
   isDevelopmentMode: boolean = false;
 
-  enemyStructs: IEnemyDefinition[] = [
+  enemyStructs: EnemyDefinition[] = [
     {
       id: "beginner mob 1",
       position: {x: 200, y: 200},
@@ -148,8 +74,11 @@ export class GameScene extends Phaser.Scene {
     },
   ];
 
-  weaponStructs: IWeaponDefinition[] = [
+  weaponStructs: WeaponDefinition[] = [
     {
+      scene: this,
+      texture: "basicShooterImg",
+      frame: undefined,
       id: "Basic Shooter",
       x: 200,
       y: 200,
@@ -176,8 +105,8 @@ export class GameScene extends Phaser.Scene {
           right: "room2",
         },
         playerSpawnPoints: {
-          right: { x: gameWidth - rmProps.leftRightOffset, y: windowCenterY },
-          default: { x: windowCenterX, y: windowCenterY + 50 },
+          right: { x: winProps.gameWidth - rmProps.leftRightOffset, y: winProps.windowCenterY },
+          default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
         },
         enemies: [],
         weapons: [],
@@ -191,9 +120,9 @@ export class GameScene extends Phaser.Scene {
           up: "room3",
         },
         playerSpawnPoints: {
-          left: { x: rmProps.leftRightOffset, y: windowCenterY },
-          up: { x: windowCenterX, y: rmProps.topBottomOffset },
-          default: { x: windowCenterX, y: windowCenterY + 50 },
+          left: { x: rmProps.leftRightOffset, y: winProps.windowCenterY },
+          up: { x: winProps.windowCenterX, y: rmProps.topBottomOffset },
+          default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
         },
         enemies: [],
         weapons: [],
@@ -207,10 +136,10 @@ export class GameScene extends Phaser.Scene {
         },
         playerSpawnPoints: {
           down: {
-            x: windowCenterX,
-            y: gameHeight - rmProps.topBottomOffset,
+            x: winProps.windowCenterX,
+            y: winProps.gameHeight - rmProps.topBottomOffset,
           },
-          default: { x: windowCenterX, y: windowCenterY + 50 },
+          default: { x: winProps.windowCenterX, y: winProps.windowCenterY + 50 },
         },
         enemies: [],
         weapons: [],
@@ -256,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     }) as { Esc: Phaser.Input.Keyboard.Key };
 
     this.escText = this.add
-      .text(windowCenterX, windowCenterY + 450, "Press Esc to pause the game", {
+      .text(winProps.windowCenterX, winProps.windowCenterY + 450, "Press Esc to pause the game", {
         font: "16px Arial",
         color: "rgba(0, 0, 0, 0.4)",
       })
@@ -318,6 +247,7 @@ export class GameScene extends Phaser.Scene {
         if (enemy instanceof Enemy && enemy.active) {
           enemy.update(time, delta);
         }
+        return true;
       }, this);
     }
 
@@ -339,10 +269,10 @@ export class GameScene extends Phaser.Scene {
       }
       this.debugGraphics.clear();
       this.debugGraphics.strokeRect(
-        rmDim.roomOffsetX,
-        rmDim.roomOffsetY,
-        rmDim.innerRoomWidth,
-        rmDim.innerRoomHeight
+        roomDim.roomOffsetX,
+        roomDim.roomOffsetY,
+        roomDim.innerRoomWidth,
+        roomDim.innerRoomHeight
       );
       this.debugGraphics.setVisible(true);
     } else {
@@ -352,7 +282,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (this.player && this.player.body) {
+    if (this.player?.body instanceof Phaser.Physics.Arcade.Body) {
       this.player.body.debugShowBody = this.isDevelopmentMode;
       this.player.body.debugShowVelocity = this.isDevelopmentMode;
     }
@@ -366,12 +296,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.enemyGroup) {
-      this.enemyGroup.children.each(function (enemy: Phaser.GameObjects.GameObject) {
-        if (enemy instanceof Enemy && enemy.body) {
+      this.enemyGroup.children.each((enemy: Phaser.GameObjects.GameObject) => {
+        if (enemy instanceof Enemy && enemy.body instanceof Phaser.Physics.Arcade.Body) {
           enemy.body.debugShowBody = this.isDevelopmentMode;
           enemy.body.debugShowVelocity = this.isDevelopmentMode;
         }
-      }, this);
+        return true;
+      });
     }
   }
 
@@ -397,56 +328,53 @@ export class GameScene extends Phaser.Scene {
     this.currentRoomKey = roomKey;
 
     const bg = this.add
-      .image(rmDim.roomOffsetX, rmDim.roomOffsetY, roomData.background)
+      .image(roomDim.roomOffsetX, roomDim.roomOffsetY, roomData.background)
       .setOrigin(0, 0)
       .setDepth(-1);
 
-    const scaleX = rmDim.innerRoomWidth / bg.width;
-    const scaleY = rmDim.innerRoomHeight / bg.height;
+    const scaleX = roomDim.innerRoomWidth / bg.width;
+    const scaleY = roomDim.innerRoomHeight / bg.height;
     bg.setScale(scaleX, scaleY);
 
     this.roomContentGroup.add(bg);
 
     this.physics.world.setBounds(
-      rmDim.roomOffsetX,
-      rmDim.roomOffsetY,
-      rmDim.innerRoomWidth,
-      rmDim.innerRoomHeight
+      roomDim.roomOffsetX,
+      roomDim.roomOffsetY,
+      roomDim.innerRoomWidth,
+      roomDim.innerRoomHeight
     );
 
     this.updateDebugVisuals();
 
-    let spawnPoint: IPlayerSpawnPoint = roomData.playerSpawnPoints[entryDirection as keyof IRoomConnections] || roomData.playerSpawnPoints.default;
+    let spawnPoint = roomData.playerSpawnPoints[entryDirection as keyof IRoomConnections] || roomData.playerSpawnPoints.default;
 
     if (!spawnPoint) {
       spawnPoint = roomData.playerSpawnPoints.default || {
-        x: windowCenterX,
-        y: windowCenterY,
+        x: winProps.windowCenterX,
+        y: winProps.windowCenterY,
       };
     }
 
-    const playerBodyWidthHalf = this.player.body.width / 2;
-    const playerBodyHeightHalf = this.player.body.height / 2;
-
     spawnPoint.x = Phaser.Math.Clamp(
       spawnPoint.x,
-      rmDim.roomOffsetX + playerBodyWidthHalf,
-      rmDim.roomOffsetX + rmDim.innerRoomWidth - playerBodyWidthHalf
+      roomDim.roomOffsetX + this.player.getPlayerCenterX(),
+      roomDim.roomOffsetX + roomDim.innerRoomWidth - this.player.getPlayerCenterX()
     );
     spawnPoint.y = Phaser.Math.Clamp(
       spawnPoint.y,
-      rmDim.roomOffsetY + playerBodyHeightHalf,
-      rmDim.roomOffsetY + rmDim.innerRoomHeight - playerBodyHeightHalf
+      roomDim.roomOffsetY + this.player.getPlayerCenterY(),
+      roomDim.roomOffsetY + roomDim.innerRoomHeight - this.player.getPlayerCenterY()
     );
 
     this.player.setPosition(spawnPoint.x, spawnPoint.y);
 
     this.createRoomDoors(
       roomData.connections,
-      rmDim.roomOffsetX,
-      rmDim.roomOffsetY,
-      rmDim.innerRoomWidth,
-      rmDim.innerRoomHeight
+      roomDim.roomOffsetX,
+      roomDim.roomOffsetY,
+      roomDim.innerRoomWidth,
+      roomDim.innerRoomHeight
     );
 
     if (roomData.weapons && roomData.weapons.length > 0) {
@@ -455,8 +383,7 @@ export class GameScene extends Phaser.Scene {
           !weaponDef.pickedUp &&
           !(this.player.equippedWeapon && this.player.equippedWeapon.id === weaponDef.id)
         ) {
-          const newWeapon = Weapons.createWeaponFromDef(this, weaponDef) as IWeapon;
-          newWeapon.weaponDefinition = weaponDef;
+          const newWeapon = Weapons.createWeaponFromDefinition(this, weaponDef) as Weapons;
           newWeapon.setScale(0.15);
           newWeapon.setDepth(0);
           this.weaponGroup.add(newWeapon);
@@ -465,9 +392,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (roomData.enemies && roomData.enemies.length > 0) {
-      roomData.enemies.forEach((enemyDef: IEnemyDefinition) => {
+      roomData.enemies.forEach((enemyDef: EnemyDefinition) => {
         if (!enemyDef.isDead) {
-          const newEnemy = Enemy.createEnemyFromDef(this, enemyDef.position.x, enemyDef.position.y, "enemy", undefined, enemyDef.id, enemyDef.speed, enemyDef.damage, enemyDef.health, enemyDef.isDead, enemyDef.count) as Enemy;
+          const newEnemy = Enemy.createEnemyFromDef(this, {...enemyDef}) as Enemy;
           newEnemy.enemyDefinition = enemyDef;
           this.enemyGroup.add(newEnemy);
         }
@@ -495,13 +422,10 @@ export class GameScene extends Phaser.Scene {
       this.player.equippedWeapon.projectileGroup &&
       this.enemyGroup
     ) {
-      this.physics.add.overlap(
-        this.player.equippedWeapon.projectileGroup,
-        this.enemyGroup,
-        (projectile: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) => {
+      this.physics.add.overlap( this.player.equippedWeapon.projectileGroup, this.enemyGroup, (projectile, enemy) => {
           if (enemy instanceof Enemy) {
 
-            enemy.takeDamage(this.player.equippedWeapon!.damage);
+            enemy.takeDamage(this.player.equippedWeapon.damage);
           }
           projectile.destroy();
         }
@@ -514,7 +438,7 @@ export class GameScene extends Phaser.Scene {
     player.takeDamage(enemy.damage);
   }
 
-  createRoomDoors(connections: IRoomConnections, roomOffsetX: number, roomOffsetY:number , innerRoomWidth: number, innerRoomHeight: number): void {
+  createRoomDoors(connections: IRoomConnections, roomOffsetX: number, roomOffsetY: number , innerRoomWidth: number, innerRoomHeight: number): void {
     const roomLeftEdge = roomOffsetX;
     const roomRightEdge = roomOffsetX + innerRoomWidth;
     const roomTopEdge = roomOffsetY;
@@ -523,7 +447,7 @@ export class GameScene extends Phaser.Scene {
     const roomCenterY = roomOffsetY + innerRoomHeight / 2;
 
     // Right Door
-    const createDoor = (x: number, y: number, displayWidth: number, displayHeight: number, targetRoom: number, entryDirection: string) => {
+    const createDoor = (x: number, y: number, displayWidth: number, displayHeight: number, targetRoom: string, entryDirection: string) => {
       const door = this.doorGroup.create(
         x,
         y, 
@@ -535,30 +459,28 @@ export class GameScene extends Phaser.Scene {
       door.displayHeight = displayHeight;
       door.setData("targetRoom", targetRoom);
       door.setData("entryDirection", entryDirection);
-      if (door.body isntanceof Phaser.Physics.Arcade.Body) {
-        door.body.setAllowGravity(false);
-      }
+      door.setGravity(0, 0);
       door.refreshBody();
       return door;
     }
     if (connections.right) {
       createDoor(
-        roomRightEdge - doorThickness / 2,
+        roomRightEdge - rmProps.doorThickness / 2,
         roomCenterY,
-        doorThickness,
-        rmDim.doorHeight,
-        connections.right,
+        rmProps.doorThickness,
+        roomDim.doorHeight,
+        connections.right, 
         "left"
       );
     }
     // Left Door
     if (connections.left) {
       createDoor(
-        roomLeftEdge + doorThickness / 2, 
+        roomLeftEdge + rmProps.doorThickness / 2, 
         roomCenterY,
-        doorThickness, 
-        rmDim.doorHeight,
-        connections.left,
+        rmProps.doorThickness, 
+        roomDim.doorHeight,
+        connections.left, 
         "right"
       );
     }
@@ -566,22 +488,22 @@ export class GameScene extends Phaser.Scene {
     if (connections.up) {
       createDoor(
         roomCenterX,
-        roomTopEdge + doorThickness / 2,
-        rmDim.doorWidth,
-        doorThickness,
+        roomTopEdge + rmProps.doorThickness / 2,
+        roomDim.doorWidth,
+        rmProps.doorThickness,
         connections.up,
-        "down"
+        "down" 
       );
     }
     // Down Door
     if (connections.down) {
       createDoor(
         roomCenterX,
-        roomBottomEdge - doorThickness / 2,
-        rmDim.doorWidth,
-        doorThickness,
-        connections.down,
-        "up"
+        roomBottomEdge - rmProps.doorThickness / 2,
+        roomDim.doorWidth,
+        rmProps.doorThickness,
+        connections.down, 
+        "up" 
       );
     }
 
@@ -610,25 +532,21 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.weaponGroup, this.onPlayerPickUpWeapon as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
   }
 
-  onPlayerPickUpWeapon(player: IPlayer, weapon: IWeapon): void {
-    player.inventory.push({
-      id: weapon.id,
-      x: weapon.x,
-      y: weapon.y,
-      damage: weapon.damage,
-      cooldown: weapon.cooldown,
-      speed: weapon.speed,
-      pickedUp: true,
-      rmkey: this.currentRoomKey || "",
-    });
+  //add items to be picked up later
+  onPlayerPickUpWeapon(player: IPlayer, weapon: Weapons, items: unknown): void {
+    const currentRoomData = this.rooms[this.currentRoomKey!];
+    const itemWasPickedUp = currentRoomData?.weapons?.find((def) => def.id === weapon.id) 
+
+    if (itemWasPickedUp) {
+      player.inventory.push({...itemWasPickedUp, pickedUp: true});
+    }
 
     this.weaponGroup.remove(weapon, false, false);
 
-    const currentRoomData = this.rooms[this.currentRoomKey!];
     if (currentRoomData && currentRoomData.weapons) {
       const pickedUpWeaponDef = currentRoomData.weapons.find((def) => def.id === weapon.id);
-      if (pickedUpWeaponDef) {
-        pickedUpWeaponDef.pickedUp = true;
+      if (itemWasPickedUp) {
+        itemWasPickedUp.pickedUp = true;
         console.log(
           `Weapon ${weapon.id} in ${this.currentRoomKey} permanently marked as picked up.`
         );
@@ -649,7 +567,7 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.overlap(
         this.player.equippedWeapon.projectileGroup,
         this.enemyGroup,
-        (projectile: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) => {
+        (projectile, enemy) => {
           if (enemy instanceof Enemy) {
             enemy.takeDamage(this.player.equippedWeapon!.damage);
           }
