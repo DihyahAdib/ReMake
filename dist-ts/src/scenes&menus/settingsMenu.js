@@ -1,5 +1,5 @@
 //settingsScene.js
-import { winProps } from "../utils/screenUtils";
+import { winProps } from "../utils/screenUtils.js";
 const settingsButtonStyle = {
     fontSize: "32px",
     color: "#FFFFFF",

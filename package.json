@@ -3,7 +3,7 @@
   "prettier": {
     "printWidth": 100
   },
-  "version": "1.0.4",
+  "version": "1.1.5",
   "description": "A Phaser game built with Electron",
   "main": "dist-ts/main.js",
   "scripts": {

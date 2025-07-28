@@ -1,6 +1,6 @@
 //settingsScene.js
 
-import { winProps } from "../utils/screenUtils";
+import { winProps } from "../utils/screenUtils.js";
 
 const settingsButtonStyle: Phaser.Types.GameObjects.Text.TextStyle & {
   padding: { x: number; y: number };

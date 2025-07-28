@@ -1,9 +1,8 @@
 //gameScene.js
-import * as Phaser from 'phaser'
 import { winProps, RoomProperties, RoomDimensions, rmProps, getRoomDimensions } from "../utils/screenUtils.js";
-import { Enemy, EnemyDefinition } from "../enemy";
-import { Weapons, WeaponDefinition} from "../weapons";
-import { IPlayer, createPlayerWithTag } from '../player';
+import { Enemy, EnemyDefinition } from "../enemy.js";
+import { Weapons, WeaponDefinition} from "../weapons.js";
+import { IPlayer, createPlayerWithTag } from '../player.js';
 
 const roomDim = getRoomDimensions();
 

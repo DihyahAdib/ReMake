@@ -1,5 +1,3 @@
-//player.js
-import * as Phaser from "phaser";
 export class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, texture, frame, id, x, y, attackDamage, initialSpeed, initialHealth, level, nameTag) {
         super(scene, x, y, texture, frame);

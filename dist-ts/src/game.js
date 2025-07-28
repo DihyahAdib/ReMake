@@ -1,10 +1,10 @@
 //game.js
-import { winProps } from "./utils/screenUtils";
-import { MenuScene } from "./scenes&menus/mainMenu";
-import { TutorialScene } from "./scenes&menus/tutorialScene";
-import { GameScene } from "./scenes&menus/gameScene";
-import { PauseScene } from "./scenes&menus/pauseMenu";
-import { SettingScene } from "./scenes&menus/settingsMenu";
+import { winProps } from "./utils/screenUtils.js";
+import { MenuScene } from "./scenes&menus/mainMenu.js";
+import { TutorialScene } from "./scenes&menus/tutorialScene.js";
+import { GameScene } from "./scenes&menus/gameScene.js";
+import { PauseScene } from "./scenes&menus/pauseMenu.js";
+import { SettingScene } from "./scenes&menus/settingsMenu.js";
 const config = {
     type: Phaser.AUTO,
     scale: {

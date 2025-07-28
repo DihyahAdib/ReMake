@@ -1,6 +1,6 @@
 //tutorialScene
-import { createPlayerWithTag } from "../player";
-import { winProps } from "../utils/screenUtils";
+import { createPlayerWithTag } from "../player.js";
+import { winProps } from "../utils/screenUtils.js";
 export class TutorialScene extends Phaser.Scene {
     constructor() {
         super({ key: "TutorialScene" });

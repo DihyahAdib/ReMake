@@ -11,7 +11,8 @@ interface IElectronAPI {
 declare global {
   interface Window {
     myUniqueElectronAPI: IElectronAPI;
+    Phaser: typeof Phaser
   }
 }
-
+declare const Phaser: typeof import('phaser'); 
 export {};

@@ -1,6 +1,5 @@
 //player.js
-import * as Phaser from "phaser";
-import { WeaponDefinition, Weapons} from "./weapons";
+import { WeaponDefinition, Weapons} from "./weapons.js";
 
 type DirectionKeys = {
   up: Phaser.Input.Keyboard.Key;

@@ -1,5 +1,5 @@
 //enemy.js
-import { Player } from "./player";
+import { Player } from "./player.js";
 
 export interface EnemyDefinition {
   id: string;
