@@ -13,7 +13,7 @@
     "dist": "npm run build-ts && electron-builder --dir",
     "pack": "npm run build-ts && electron-builder --dir",
     "build-ts": "tsc -p tsconfig.json && tsc -p src/tsconfig.renderer.json && node scripts/copy-assets.js",
-    "build": "npm run build-ts && electron-builder",
+    "build": "rimraf dist-ts && npm run build-ts && electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "clean-dist-ts": "rimraf dist-ts",
     "watch-ts": "tsc --watch"
